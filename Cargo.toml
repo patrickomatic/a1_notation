@@ -1,7 +1,8 @@
 [package]
 authors = ["Patrick Carroll <patrick@patrickomatic.com>"]
-description = "A library for dealing with A1 Spreadsheet formats"
+description = "A package for converting to and from A1 Spreadsheet notation"
 name = "a1_notation"
+repository = "https://github.com/patrickomatic/a1_notation"
 version = "0.1.0"
 edition = "2021"
 
