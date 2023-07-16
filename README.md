@@ -1,3 +1,6 @@
+![github workflow](https://github.com/patrickomatic/a1_notation/actions/workflows/rust.yml/badge.svg)
+![crates.io](https://img.shields.io/crates/v/a1_notation.svg)
+
 # a1_notation
 
 A Rust crate for manipulating and parsing to and from A1 notation.  A1 notation is what you 
@@ -57,7 +60,7 @@ Here is a table illustrating A1 references:
 | `"1:1,3:3,8:8"`   | Rows 1, 3, and 8          |
 | `"A:A,C:C,F:F"`   | Columns A, C, and F       |
 
-For more info take a look at the [Rust docs](https://docs.rs/a1_notation/latest/a1_notation/).
+For more info take a look at the [package on crates.io](https://crates.io/crates/a1_notation/) and it's [Rust docs](https://docs.rs/a1_notation/latest/a1_notation/).
 
 ## Additional Reading
 
