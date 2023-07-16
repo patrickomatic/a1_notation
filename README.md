@@ -2,7 +2,7 @@
 
 A Rust crate for manipulating and parsing to and from A1 notation.  A1 notation is what you 
 typically see in spreadsheets where the first cell (at `(0, 0)`) is referred to as cell `A1` where
-`A` represents the first row (`0`) and `1` represents the first column.
+`A` represents the first column (`0`) and `1` represents the first row.
 
 ## Additional Reading
 

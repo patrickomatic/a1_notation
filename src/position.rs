@@ -21,19 +21,35 @@ pub enum Position {
 
     /// RowRelative(y)
     ///
-    /// * `y` - The row index
+    /// * `y` - The row index.  Starts at 0 being the very top row.
     RowRelative(usize),
 
     /// ColumnRelative(y)
     ///
-    /// * `x` - The column index
+    /// * `x` - The column index.  Starts at 0 being the left-most column.
     ColumnRelative(usize),
 }
 
 impl Position {
+    /// When a relative reference is displayed within a range, the semantics are slightly different
+    /// - for example when we print the column A by itself, it looks like:
+    ///
+    /// "A:A"
+    ///
+    /// however when it's part of a range, it's just "A":
+    ///
+    /// "A:C"
+    pub fn display_for_range(&self) -> String {
+        match self {
+            Position::Absolute(_, _) => self.to_string(),
+            Position::ColumnRelative(_) => self.a1_left(),
+            Position::RowRelative(_) => self.a1_right(),
+        }
+    }
+
     /// This function assumes that you've consumed the first part (the "A") of the A1 string and
     /// now we're just consuming the integer part
-    fn parse_a1_x(a1: &str) -> Result<Option<usize>> {
+    fn parse_a1_y(a1: &str) -> Result<Option<usize>> {
         if !a1.ends_with(|c: char| c.is_ascii_digit()) {
             return Ok(None)
         };
@@ -56,18 +72,18 @@ impl Position {
         Ok(Some(n - 1))
     }
 
-    fn parse_a1_y(a1: &str) -> Result<(Option<usize>, &str)> {
+    fn parse_a1_x(a1: &str) -> Result<(Option<usize>, &str)> {
         if !a1.starts_with(|c: char| c.is_ascii_alphabetic()) {
             return Ok((None, a1))
         };
 
         let mut consumed = 0;
-        let mut y = 0;
+        let mut x = 0;
         for ch in a1.chars() {
             let uch = ch.to_ascii_uppercase();
             if let Some(ch_index) = ALPHA.iter().position(|&c| c == uch) {
                 consumed += 1;
-                y = y * 26 + ch_index + 1;
+                x = x * 26 + ch_index + 1;
             } else if ch.is_ascii_digit() {
                 break
             } else {
@@ -81,7 +97,7 @@ impl Position {
         if consumed == 0 {
             Ok((None, a1))
         } else {
-            Ok((Some(y - 1), &a1[consumed..]))
+            Ok((Some(x - 1), &a1[consumed..]))
         }
     }
 
@@ -89,9 +105,9 @@ impl Position {
     /// if it's larger than 26, we'll have additional characters like AA1
     fn a1_left(&self) -> String {
         match self {
-            Self::Absolute(_, y) | Self::RowRelative(y) => {
+            Self::Absolute(x, _) | Self::ColumnRelative(x) => {
                 let mut row_part = String::from("");
-                let mut c = *y;
+                let mut c = *x;
                 
                 loop {
                     row_part = format!("{}{}", ALPHA[c % 26], row_part);
@@ -106,7 +122,7 @@ impl Position {
 
                 row_part
             },
-            Self::ColumnRelative(_) => self.a1_right(),
+            Self::RowRelative(_) => self.a1_right(),
         }
     }
 
@@ -114,8 +130,8 @@ impl Position {
     /// by 1 instead of 0
     fn a1_right(&self) -> String {
         match self {
-            Self::Absolute(x, _) | Self::ColumnRelative(x) => (x + 1).to_string(),
-            Self::RowRelative(_) => self.a1_left(),
+            Self::Absolute(_, y) | Self::RowRelative(y) => (y + 1).to_string(),
+            Self::ColumnRelative(_) => self.a1_left(),
         }
     }
 }
@@ -124,8 +140,8 @@ impl str::FromStr for Position {
     type Err = Error;
 
     fn from_str(a1: &str) -> Result<Self> {
-        let (y, rest) = Self::parse_a1_y(a1)?;
-        let x = Self::parse_a1_x(rest)?;
+        let (x, rest) = Self::parse_a1_x(a1)?;
+        let y = Self::parse_a1_y(rest)?;
 
         if let Some(x) = x {
             if let Some(y) = y {
@@ -149,37 +165,34 @@ impl fmt::Display for Position {
     /// represented by a letter A-Z and the column numerically, with the first position being `1`
     /// (not `0`).  So for example origin is `A1`:
     ///
-    /// ```skip
-    /// use csvpp::Position;
-    ///
-    /// assert_eq!(Position::Absolute(0, 0).to_a1(), "A1");
+    /// ```
+    /// use a1_notation::Position;
+    /// assert_eq!("A1", Position::Absolute(0, 0).to_string());
     /// ```
     ///
     /// And the position (1, 5) gives us `F2`. (F is the fifth letter, and 2 is the second cell
     /// when you start at 1):
     ///
-    /// ```skip
-    /// use csvpp::Position;
-    ///
-    /// assert_eq!(Position::Absolute(1, 5).to_a1(), "F2");
+    /// ```
+    /// # use a1_notation::Position;
+    /// assert_eq!("B6", Position::Absolute(1, 5).to_string());
     /// ```
     ///
     /// For relative cells we just have the alpha *or* numeric component:
     ///
-    /// ```skip
-    /// use csvpp::Position;
-    ///
-    /// assert_eq!(Position::RowRelative(0).to_a1(), "A:A");
-    /// assert_eq!(Position::ColumnRelative(0).to_a1(), "1:1");
+    /// ```
+    /// # use a1_notation::Position;
+    /// assert_eq!("1:1", Position::RowRelative(0).to_string());
+    /// assert_eq!("A:A", Position::ColumnRelative(0).to_string());
     /// ```
     ///
-    /// another complication is once we get past column 26, we'll have to start stacking the letters:
-    /// ```skip
-    /// use csvpp::Position;
-    ///
-    /// assert_eq!(Position::Absolute(0, 25).to_a1(), "Z1");
-    /// assert_eq!(Position::Absolute(0, 26).to_a1(), "AA1");
-    /// assert_eq!(Position::Absolute(0, 27).to_a1(), "AB1");
+    /// yet another complication is once we get past column 26, we'll have to start stacking the 
+    /// letters:
+    /// ```
+    /// # use a1_notation::Position;
+    /// assert_eq!("Z1", Position::Absolute(25, 0).to_string());
+    /// assert_eq!("AA1", Position::Absolute(26, 0).to_string());
+    /// assert_eq!("AB1", Position::Absolute(27, 0).to_string());
     /// ```
     ///
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -191,5 +204,52 @@ impl fmt::Display for Position {
         };
 
         write!(f, "{}{}{}", left, separator, right)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+    use super::*;
+
+    #[test]
+    fn display_absolute() {
+        assert_eq!("A1", Position::Absolute(0, 0).to_string());
+        assert_eq!("C5", Position::Absolute(2, 4).to_string());
+        assert_eq!("AY51", Position::Absolute(50, 50).to_string());
+    }
+
+    #[test]
+    fn display_column_relative() {
+        assert_eq!("A:A", Position::ColumnRelative(0).to_string());
+        assert_eq!("AE:AE", Position::ColumnRelative(30).to_string());
+    }
+
+    #[test]
+    fn display_row_relative() {
+        assert_eq!("1:1", Position::RowRelative(0).to_string());
+        assert_eq!("31:31", Position::RowRelative(30).to_string());
+    }
+
+    #[test]
+    fn from_str_absolute() {
+        assert_eq!(Position::Absolute(0, 0), Position::from_str("A1").unwrap());
+        assert_eq!(Position::Absolute(50, 50), Position::from_str("AY51").unwrap());
+    }
+    
+    #[test]
+    fn from_str_column_relative() {
+        assert_eq!(Position::ColumnRelative(0), Position::from_str("A").unwrap());
+    }
+
+    #[test]
+    fn from_str_row_relative() {
+        assert_eq!(Position::RowRelative(0), Position::from_str("1").unwrap());
+    }
+
+    #[test]
+    fn from_str_invalid() {
+        assert!(Position::from_str("").is_err());
+        assert!(Position::from_str("/foo").is_err());
     }
 }

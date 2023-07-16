@@ -1,3 +1,6 @@
+//! # A1Builder
+//!
+//!
 use std::str::FromStr;
 
 use crate::{Error, Result};
@@ -19,6 +22,8 @@ pub struct A1Builder {
 }
 
 impl A1Builder {
+    /// Finish building and return a `Result<A1>`.  Call this function after you've called at least
+    /// one of the builder functions.
     pub fn build(self) -> Result<A1> {
         if let Some(c) = self.cell {
             Ok(A1 {
@@ -30,8 +35,9 @@ impl A1Builder {
         }
     }
 
-    pub fn a1str(mut self, sheet_name: &str) -> Result<Self> {
-        let a1 = A1::from_str(sheet_name)?;
+    /// Parse the given string as A1 and return a builder.
+    pub fn a1str(mut self, a1_str: &str) -> Result<Self> {
+        let a1 = A1::from_str(a1_str)?;
 
         self.cell = Some(a1.reference);
         self.sheet_name = a1.sheet_name;
@@ -39,6 +45,7 @@ impl A1Builder {
         Ok(self)
     }
 
+    /// Returns a `RangeBuilder` so the caller can builder a range.
     pub fn range(self) -> RangeBuilder {
         RangeBuilder { 
             parent_builder: self, 
@@ -46,22 +53,25 @@ impl A1Builder {
         }
     }
 
+    /// Sets the `sheet_name`.
     pub fn sheet_name(mut self, sheet_name: &str) -> Self {
         self.sheet_name = Some(sheet_name.to_string());
         self
     }
 
-
+    /// Build as a `Position::ColumnRelative`
     pub fn x(mut self, v: usize) -> Self {
         self.cell = Some(RangeOrCell::Cell(Position::ColumnRelative(v)));
         self
     }
 
+    /// Build as a `Position::Absolute`
     pub fn xy(mut self, xv: usize, yv: usize) -> Self {
         self.cell = Some(RangeOrCell::Cell(Position::Absolute(xv, yv)));
         self
     }
 
+    /// Build as a `Position::RowRelative`
     pub fn y(mut self, v: usize) -> Self {
         self.cell = Some(RangeOrCell::Cell(Position::RowRelative(v)));
         self

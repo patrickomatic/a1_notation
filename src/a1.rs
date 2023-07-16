@@ -23,10 +23,12 @@ pub struct A1 {
 }
 
 impl A1 {
+    /// Returns a builder that can be used to construct instances.
     pub fn builder() -> A1Builder {
         A1Builder::default()
     }
 
+    /// The X component
     pub fn x(&self) -> Option<usize> {
         match self.cell_reference()? {
             Position::Absolute(x, _) | Position::ColumnRelative(x) => Some(x),
@@ -34,6 +36,7 @@ impl A1 {
         }
     }
 
+    /// The Y component
     pub fn y(&self) -> Option<usize> {
         match self.cell_reference()? {
             Position::Absolute(_, y) | Position::RowRelative(y) => Some(y),
@@ -41,6 +44,7 @@ impl A1 {
         }
     }
 
+    /// The X and Y components - only if both are set
     pub fn xy(&self) -> Option<(usize, usize)> {
         match self.cell_reference()? {
             Position::Absolute(x, y) => Some((x, y)),
@@ -67,17 +71,7 @@ impl A1 {
 impl str::FromStr for A1 {
     type Err = Error;
 
-    /// Parse A1-format.
-    ///
-    /// This code can parse a variety of A1 formats.  The most simple is just a direct cell
-    /// reference:
-    ///
-    /// ```
-    /// ```
-    ///
     // TODO: 
-    //
-    // * handle Sheet1!A1 style
     //
     // * handle commas? it might make it annoying to use this lib if the common cases is
     // 	 assuming a vector of ranges
@@ -96,5 +90,64 @@ impl fmt::Display for A1 {
         } else {
             write!(f, "{}", self.reference)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+    use super::*;
+
+    #[test]
+    fn display() {
+        let a1_ref = A1 {
+            sheet_name: Some("Test1".to_string()),
+            reference: RangeOrCell::Cell(Position::Absolute(1, 1)),
+        };
+
+        assert_eq!("Test1!B2", a1_ref.to_string());
+    }
+
+    #[test]
+    fn display_without_sheet_name() {
+        let a1_ref = A1 {
+            sheet_name: None,
+            reference: RangeOrCell::Cell(Position::Absolute(0, 0)),
+        };
+
+        assert_eq!("A1", a1_ref.to_string());
+    }
+
+    #[test]
+    fn display_range() {
+        let a1_ref = A1 {
+            sheet_name: None,
+            reference: RangeOrCell::Range {
+                from: Position::ColumnRelative(1),
+                to: Position::ColumnRelative(5),
+            },
+        };
+
+        assert_eq!("B:F", a1_ref.to_string());
+    }
+
+    #[test]
+    fn from_str() {
+        let a1_ref = A1 {
+            sheet_name: None,
+            reference: RangeOrCell::Cell(Position::Absolute(0, 0)),
+        };
+
+        assert_eq!(a1_ref, A1::from_str("A1").unwrap());
+    }
+
+    #[test]
+    fn from_str_sheet_name() {
+        let a1_ref = A1 {
+            sheet_name: Some("Foo".to_string()),
+            reference: RangeOrCell::Cell(Position::Absolute(0, 0)),
+        };
+
+        assert_eq!(a1_ref, A1::from_str("Foo!A1").unwrap());
     }
 }
