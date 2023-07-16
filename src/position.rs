@@ -31,39 +31,6 @@ pub enum Position {
 }
 
 impl Position {
-    /// Only the first cell in a row can have a row modifier:
-    ///
-    /// ```skip
-    /// # use csvpp::a1::position::Position;
-    ///
-    /// assert!(Position::Absolute(0, 0).can_have_row_modifier());
-    /// assert!(Position::Absolute(0, 5).can_have_row_modifier());
-    /// ```
-    ///
-    /// but not cells later in the row:
-    ///
-    /// ```skip
-    /// # use csvpp::a1::position::Position;
-    ///
-    /// assert!(!Position::Absolute(5, 0).can_have_row_modifier());
-    /// assert!(!Position::Absolute(1, 5).can_have_row_modifier());
-    /// ```
-    ///
-    /// or relative cells:
-    ///
-    /// ```skip
-    /// # use csvpp::a1::position::Position;
-    ///
-    /// assert!(!Position::RowRelative(0).can_have_row_modifier());
-    /// ```
-    // XXX this needs to move onto the cell
-    pub fn can_have_row_modifier(&self) -> bool {
-        match self {
-            Self::Absolute(x, _) => *x == 0,
-            _ => false,
-        }
-    }
-
     /// This function assumes that you've consumed the first part (the "A") of the A1 string and
     /// now we're just consuming the integer part
     fn parse_a1_x(a1: &str) -> Result<Option<usize>> {
