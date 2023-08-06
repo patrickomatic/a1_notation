@@ -5,10 +5,9 @@ documentation = "https://docs.rs/a1_notation"
 homepage = "https://github.com/patrickomatic/a1_notation"
 keywords = ["a1", "notation", "spreadsheet"]
 license = "MIT"
-license-file = "LICENSE.txt"
 name = "a1_notation"
 repository = "https://github.com/patrickomatic/a1_notation"
-version = "0.2.1"
+version = "0.2.2"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
