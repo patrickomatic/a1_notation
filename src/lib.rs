@@ -40,6 +40,21 @@
 //! assert_eq!(a1_range.to_string(), "A:D");
 //! ```
 //!
+//! Once you have an `A1`, you can shift/move it around using `shift_up`, `shift_down`,
+//! `shift_left` and `shift_right`:
+//!
+//! ```
+//! # use std::str::FromStr;
+//! # use a1_notation::A1;
+//! # use a1_notation::Shift;
+//! let a1 = A1::from_str("C3").unwrap();
+//!
+//! assert_eq!(a1.shift_down(2).to_string(), "C5");
+//! assert_eq!(a1.shift_right(1).to_string(), "D3");
+//! assert_eq!(a1.shift_left(1).to_string(), "B3");
+//! assert_eq!(a1.shift_up(2).to_string(), "C1");
+//! ```
+//!
 //! Here is a table illustrating A1 references:
 //!
 //! |**Reference**|**Meaning**|
@@ -58,17 +73,18 @@
 // TODO:
 //
 // * handle `$` between cells.
-
 mod a1;
 mod a1_builder;
 mod error;
 mod position;
 mod range_or_cell;
+mod shift;
 
 pub use a1::A1;
 pub use a1_builder::A1Builder;
 pub use error::Error;
 pub use position::Position;
 pub use range_or_cell::RangeOrCell;
+pub use shift::Shift;
 
 pub type Result<T> = std::result::Result<T, Error>;

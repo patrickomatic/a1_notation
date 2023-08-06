@@ -3,7 +3,7 @@
 use serde::{Serialize, Deserialize};
 use std::fmt;
 use std::str;
-use crate::{Error, Result};
+use crate::{Error, Result, Shift};
 
 static ALPHA: [char; 26] = [
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 
@@ -203,7 +203,41 @@ impl fmt::Display for Position {
             _ => "",
         };
 
-        write!(f, "{}{}{}", left, separator, right)
+        write!(f, "{left}{separator}{right}")
+    }
+}
+
+impl Shift for Position {
+    fn shift_down(&self, rows: usize) -> Self {
+        match self {
+            Self::Absolute(x, y) => Self::Absolute(*x, y + rows),
+            Self::ColumnRelative(_) => *self,
+            Self::RowRelative(y) => Self::RowRelative(y + rows),
+        }
+    }
+
+    fn shift_left(&self, columns: usize) -> Self {
+        match self {
+            Self::Absolute(x, y) => Self::Absolute(x.saturating_sub(columns), *y),
+            Self::ColumnRelative(x) => Self::ColumnRelative(x.saturating_sub(columns)),
+            Self::RowRelative(_) => *self,
+        }
+    }
+
+    fn shift_right(&self, columns: usize) -> Self {
+        match self {
+            Self::Absolute(x, y) => Self::Absolute(x + columns, *y),
+            Self::ColumnRelative(x) => Self::ColumnRelative(x + columns),
+            Self::RowRelative(_) => *self,
+        }
+    }
+
+    fn shift_up(&self, rows: usize) -> Self {
+        match self {
+            Self::Absolute(x, y) => Self::Absolute(*x, y.saturating_sub(rows)),
+            Self::ColumnRelative(_) => *self,
+            Self::RowRelative(y) => Self::RowRelative(y.saturating_sub(rows)),
+        }
     }
 }
 
@@ -251,5 +285,72 @@ mod tests {
     fn from_str_invalid() {
         assert!(Position::from_str("").is_err());
         assert!(Position::from_str("/foo").is_err());
+    }
+
+    #[test]
+    fn shift_down_absolute() {
+        assert_eq!(Position::Absolute(2, 2).shift_down(1), Position::Absolute(2, 3));
+        assert_eq!(Position::Absolute(2, 2).shift_down(10), Position::Absolute(2, 12));
+    }
+
+    #[test]
+    fn shift_down_column_relative() {
+        assert_eq!(Position::ColumnRelative(2).shift_down(1), Position::ColumnRelative(2));
+    }
+
+    #[test]
+    fn shift_down_row_relative() {
+        assert_eq!(Position::RowRelative(2).shift_down(1), Position::RowRelative(3));
+        assert_eq!(Position::RowRelative(1).shift_down(100), Position::RowRelative(101));
+    }
+
+    #[test]
+    fn shift_left_absolute() {
+        assert_eq!(Position::Absolute(2, 2).shift_left(1), Position::Absolute(1, 2));
+        assert_eq!(Position::Absolute(2, 2).shift_left(10), Position::Absolute(0, 2));
+    }
+
+    #[test]
+    fn shift_left_column_relative() {
+        assert_eq!(Position::ColumnRelative(2).shift_left(1), Position::ColumnRelative(1));
+        assert_eq!(Position::ColumnRelative(2).shift_left(10), Position::ColumnRelative(0));
+    }
+
+    #[test]
+    fn shift_left_row_relative() {
+        assert_eq!(Position::RowRelative(2).shift_left(1), Position::RowRelative(2));
+    }
+
+    #[test]
+    fn shift_right_absolute() {
+        assert_eq!(Position::Absolute(2, 2).shift_right(1), Position::Absolute(3, 2));
+        assert_eq!(Position::Absolute(2, 2).shift_right(10), Position::Absolute(12, 2));
+    }
+
+    #[test]
+    fn shift_right_column_relative() {
+        assert_eq!(Position::ColumnRelative(2).shift_right(1), Position::ColumnRelative(3));
+    }
+
+    #[test]
+    fn shift_right_row_relative() {
+        assert_eq!(Position::RowRelative(2).shift_right(1), Position::RowRelative(2));
+    }
+
+    #[test]
+    fn shift_up_absolute() {
+        assert_eq!(Position::Absolute(2, 2).shift_up(1), Position::Absolute(2, 1));
+        assert_eq!(Position::Absolute(2, 2).shift_up(10), Position::Absolute(2, 0));
+    }
+
+    #[test]
+    fn shift_up_column_relative() {
+        assert_eq!(Position::ColumnRelative(2).shift_up(1), Position::ColumnRelative(2));
+    }
+
+    #[test]
+    fn shift_up_row_relative() {
+        assert_eq!(Position::RowRelative(2).shift_up(1), Position::RowRelative(1));
+        assert_eq!(Position::RowRelative(2).shift_up(100), Position::RowRelative(0));
     }
 }

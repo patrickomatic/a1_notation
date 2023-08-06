@@ -11,7 +11,7 @@
 use serde::{Serialize, Deserialize};
 use std::fmt;
 use std::str;
-use crate::{Error, Result};
+use crate::{Error, Result, Shift};
 use super::a1_builder::A1Builder;
 use super::range_or_cell::RangeOrCell;
 use super::position::Position;
@@ -64,6 +64,36 @@ impl A1 {
             Ok((Some(sheet_name.to_string()), rest))
         } else {
             Ok((None, a1))
+        }
+    }
+}
+
+impl Shift for A1 {
+    fn shift_down(&self, rows: usize) -> Self {
+        Self {
+            sheet_name: self.sheet_name.clone(),
+            reference: self.reference.shift_down(rows),
+        }
+    }
+
+    fn shift_left(&self, columns: usize) -> Self {
+        Self {
+            sheet_name: self.sheet_name.clone(),
+            reference: self.reference.shift_left(columns),
+        }
+    }
+
+    fn shift_right(&self, columns: usize) -> Self {
+        Self {
+            sheet_name: self.sheet_name.clone(),
+            reference: self.reference.shift_right(columns),
+        }
+    }
+
+    fn shift_up(&self, rows: usize) -> Self {
+        Self {
+            sheet_name: self.sheet_name.clone(),
+            reference: self.reference.shift_up(rows),
         }
     }
 }
@@ -149,5 +179,45 @@ mod tests {
         };
 
         assert_eq!(a1_ref, A1::from_str("Foo!A1").unwrap());
+    }
+
+    #[test]
+    fn shift_down() {
+        let a1_ref = A1 {
+            sheet_name: Some("Test1".to_string()),
+            reference: RangeOrCell::Cell(Position::Absolute(1, 1)),
+        };
+
+        assert_eq!("Test1!B3", a1_ref.shift_down(1).to_string());
+    }
+
+    #[test]
+    fn shift_left() {
+        let a1_ref = A1 {
+            sheet_name: Some("Test1".to_string()),
+            reference: RangeOrCell::Cell(Position::Absolute(1, 1)),
+        };
+
+        assert_eq!("Test1!A2", a1_ref.shift_left(1).to_string());
+    }
+
+    #[test]
+    fn shift_right() {
+        let a1_ref = A1 {
+            sheet_name: None,
+            reference: RangeOrCell::Cell(Position::Absolute(1, 1)),
+        };
+
+        assert_eq!("C2", a1_ref.shift_right(1).to_string());
+    }
+
+    #[test]
+    fn shift_up() {
+        let a1_ref = A1 {
+            sheet_name: None,
+            reference: RangeOrCell::Cell(Position::Absolute(1, 1)),
+        };
+
+        assert_eq!("B1", a1_ref.shift_up(1).to_string());
     }
 }

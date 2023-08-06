@@ -6,7 +6,7 @@ use serde::{Serialize, Deserialize};
 use std::fmt;
 use std::str;
 
-use crate::{Error, Result};
+use crate::{Error, Result, Shift};
 use super::position::Position;
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -25,6 +25,17 @@ pub enum RangeOrCell {
     Cell(Position),
 }
 
+impl fmt::Display for RangeOrCell {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::Range { from, to } =>
+                write!(f, "{}:{}", from.display_for_range(), to.display_for_range()),
+            Self::Cell(p) =>
+                write!(f, "{}", p),
+        }
+    }
+}
+
 impl str::FromStr for RangeOrCell {
     type Err = Error;
 
@@ -40,13 +51,48 @@ impl str::FromStr for RangeOrCell {
     }
 }
 
-impl fmt::Display for RangeOrCell {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl Shift for RangeOrCell {
+    fn shift_down(&self, rows: usize) -> Self {
         match self {
             Self::Range { from, to } =>
-                write!(f, "{}:{}", from.display_for_range(), to.display_for_range()),
-            Self::Cell(p) =>
-                write!(f, "{}", p),
+                Self::Range { 
+                    from: from.shift_down(rows),
+                    to: to.shift_down(rows),
+                },
+            Self::Cell(p) => Self::Cell(p.shift_down(rows)),
+        }
+    }
+
+    fn shift_left(&self, columns: usize) -> Self {
+        match self {
+            Self::Range { from, to } =>
+                Self::Range { 
+                    from: from.shift_left(columns),
+                    to: to.shift_left(columns),
+                },
+            Self::Cell(p) => Self::Cell(p.shift_left(columns)),
+        }
+    }
+
+    fn shift_right(&self, columns: usize) -> Self {
+        match self {
+            Self::Range { from, to } =>
+                Self::Range { 
+                    from: from.shift_right(columns),
+                    to: to.shift_right(columns),
+                },
+            Self::Cell(p) => Self::Cell(p.shift_right(columns)),
+        }
+    }
+
+    fn shift_up(&self, rows: usize) -> Self {
+        match self {
+            Self::Range { from, to } =>
+                Self::Range { 
+                    from: from.shift_up(rows),
+                    to: to.shift_up(rows),
+                },
+            Self::Cell(p) => Self::Cell(p.shift_up(rows)),
         }
     }
 }
@@ -98,5 +144,85 @@ mod tests {
                 to: Position::ColumnRelative(2),
             },
             RangeOrCell::from_str("A:C").unwrap());
+    }
+
+    #[test]
+    fn shift_down_range() {
+        assert_eq!(
+            RangeOrCell::Range {
+                from: Position::RowRelative(0),
+                to: Position::RowRelative(5),
+            }.shift_down(5),
+            RangeOrCell::Range {
+                from: Position::RowRelative(5),
+                to: Position::RowRelative(10),
+            });
+    }
+
+    #[test]
+    fn shift_down_cell() {
+        assert_eq!(
+            RangeOrCell::Cell(Position::Absolute(0, 0)).shift_down(10), 
+            RangeOrCell::Cell(Position::Absolute(0, 10)));
+    }
+
+    #[test]
+    fn shift_left_range() {
+        assert_eq!(
+            RangeOrCell::Range {
+                from: Position::RowRelative(0),
+                to: Position::RowRelative(5),
+            }.shift_left(5),
+            RangeOrCell::Range {
+                from: Position::RowRelative(0),
+                to: Position::RowRelative(5),
+            });
+    }
+
+    #[test]
+    fn shift_left_cell() {
+        assert_eq!(
+            RangeOrCell::Cell(Position::Absolute(5, 0)).shift_left(10), 
+            RangeOrCell::Cell(Position::Absolute(0, 0)));
+    }
+
+    #[test]
+    fn shift_right_range() {
+        assert_eq!(
+            RangeOrCell::Range {
+                from: Position::RowRelative(0),
+                to: Position::RowRelative(5),
+            }.shift_right(5),
+            RangeOrCell::Range {
+                from: Position::RowRelative(0),
+                to: Position::RowRelative(5),
+            });
+    }
+
+    #[test]
+    fn shift_right_cell() {
+        assert_eq!(
+            RangeOrCell::Cell(Position::Absolute(0, 0)).shift_right(10), 
+            RangeOrCell::Cell(Position::Absolute(10, 0)));
+    }
+
+    #[test]
+    fn shift_up_range() {
+        assert_eq!(
+            RangeOrCell::Range {
+                from: Position::RowRelative(15),
+                to: Position::RowRelative(20),
+            }.shift_up(5),
+            RangeOrCell::Range {
+                from: Position::RowRelative(10),
+                to: Position::RowRelative(15),
+            });
+    }
+
+    #[test]
+    fn shift_up_cell() {
+        assert_eq!(
+            RangeOrCell::Cell(Position::Absolute(0, 100)).shift_up(10), 
+            RangeOrCell::Cell(Position::Absolute(0, 90)));
     }
 }
