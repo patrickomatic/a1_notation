@@ -11,10 +11,7 @@
 use serde::{Serialize, Deserialize};
 use std::fmt;
 use std::str;
-use crate::{Error, Result};
-use super::a1_builder::A1Builder;
-use super::range_or_cell::RangeOrCell;
-use super::position::Position;
+use crate::{A1Builder, Error, Position, RangeOrCell, Result};
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct A1 {
@@ -28,30 +25,34 @@ impl A1 {
         A1Builder::default()
     }
 
-    pub fn shift_down(&self, rows: usize) -> Self {
+    /// Returns a new `A1` shifted downwards by `rows` rows.
+    pub fn shift_down(self, rows: usize) -> Self {
         Self {
-            sheet_name: self.sheet_name.clone(),
+            sheet_name: self.sheet_name,
             reference: self.reference.shift_down(rows),
         }
     }
 
-    pub fn shift_left(&self, columns: usize) -> Self {
+    /// Returns a new `A1` shifted left by `columns` columns.
+    pub fn shift_left(self, columns: usize) -> Self {
         Self {
-            sheet_name: self.sheet_name.clone(),
+            sheet_name: self.sheet_name,
             reference: self.reference.shift_left(columns),
         }
     }
 
-    pub fn shift_right(&self, columns: usize) -> Self {
+    /// Returns a new `A1` shifted right by `columns` columns.
+    pub fn shift_right(self, columns: usize) -> Self {
         Self {
-            sheet_name: self.sheet_name.clone(),
+            sheet_name: self.sheet_name,
             reference: self.reference.shift_right(columns),
         }
     }
 
-    pub fn shift_up(&self, rows: usize) -> Self {
+    /// Returns a new `A1` shifted up by `rows` rows.
+    pub fn shift_up(self, rows: usize) -> Self {
         Self {
-            sheet_name: self.sheet_name.clone(),
+            sheet_name: self.sheet_name,
             reference: self.reference.shift_up(rows),
         }
     }

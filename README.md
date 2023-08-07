@@ -53,10 +53,10 @@ Once you have an `A1`, you can shift/move it around using `shift_up`, `shift_dow
 use a1_notation::Shift;
 let a1 = A1::from_str("C3").unwrap();
 
-assert_eq!(a1.shift_down(2).to_string(), "C5");
-assert_eq!(a1.shift_right(1).to_string(), "D3");
-assert_eq!(a1.shift_left(1).to_string(), "B3");
-assert_eq!(a1.shift_up(2).to_string(), "C1");
+assert_eq!(a1.clone().shift_down(2).to_string(), "C5");
+assert_eq!(a1.clone().shift_right(1).to_string(), "D3");
+assert_eq!(a1.clone().shift_left(1).to_string(), "B3");
+assert_eq!(a1.clone().shift_up(2).to_string(), "C1");
 ```
 
 Here is a table illustrating A1 references:

@@ -9,7 +9,7 @@ use std::str;
 use crate::{Error, Result};
 use super::position::Position;
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Copy, Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum RangeOrCell {
     /// A range with two sides:
     ///
@@ -31,7 +31,7 @@ impl fmt::Display for RangeOrCell {
             Self::Range { from, to } =>
                 write!(f, "{}:{}", from.display_for_range(), to.display_for_range()),
             Self::Cell(p) =>
-                write!(f, "{}", p),
+                write!(f, "{p}"),
         }
     }
 }
