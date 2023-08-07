@@ -25,6 +25,20 @@ impl A1 {
         A1Builder::default()
     }
 
+    pub fn with_sheet_name(self, sheet_name: &str) -> Self {
+        Self {
+            sheet_name: Some(sheet_name.to_owned()),
+            ..self
+        }
+    }
+
+    pub fn without_sheet_name(self) -> Self {
+        Self {
+            sheet_name: None,
+            ..self
+        }
+    }
+
     /// Returns a new `A1` shifted downwards by `rows` rows.
     pub fn shift_down(self, rows: usize) -> Self {
         Self {
@@ -114,10 +128,11 @@ impl str::FromStr for A1 {
 
 impl fmt::Display for A1 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let r = self.reference;
         if let Some(sheet_name) = &self.sheet_name {
-            write!(f, "{}!{}", sheet_name, self.reference)
+            write!(f, "{sheet_name}!{r}")
         } else {
-            write!(f, "{}", self.reference)
+            write!(f, "{r}")
         }
     }
 }
@@ -218,5 +233,25 @@ mod tests {
         };
 
         assert_eq!("B1", a1_ref.shift_up(1).to_string());
+    }
+
+    #[test]
+    fn with_sheet_name() {
+        let a1 = A1 {
+            sheet_name: None,
+            reference: RangeOrCell::Cell(Position::Absolute(1, 1)),
+        };
+
+        assert_eq!(Some("foo".to_string()), a1.with_sheet_name("foo").sheet_name);
+    }
+
+    #[test]
+    fn without_sheet_name() {
+        let a1 = A1 {
+            sheet_name: Some("foo".to_string()),
+            reference: RangeOrCell::Cell(Position::Absolute(1, 1)),
+        };
+
+        assert_eq!(None, a1.without_sheet_name().sheet_name);
     }
 }
