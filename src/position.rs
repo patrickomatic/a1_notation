@@ -47,6 +47,22 @@ impl Position {
         }
     }
 
+    pub fn column(&self) -> Option<Self> {
+        match self {
+            Position::ColumnRelative(x) | Position::Absolute(x, _) =>
+                Some(Self::ColumnRelative(*x)),
+            Position::RowRelative(_) => None,
+        }
+    }
+
+    pub fn row(&self) -> Option<Self> {
+        match self {
+            Position::RowRelative(y) | Position::Absolute(_, y) =>
+                Some(Self::RowRelative(*y)),
+            Position::ColumnRelative(_) => None,
+        }
+    }
+
     pub fn shift_down(&self, rows: usize) -> Self {
         match self {
             Self::Absolute(x, y) => Self::Absolute(*x, y + rows),
@@ -245,6 +261,22 @@ mod tests {
     use super::*;
 
     #[test]
+    fn column_some() {
+        assert_eq!(
+            Some(Position::ColumnRelative(42)),
+            Position::Absolute(42, 1).column());
+
+        assert_eq!(
+            Some(Position::ColumnRelative(42)),
+            Position::ColumnRelative(42).column());
+    }
+
+    #[test]
+    fn column_none() {
+        assert_eq!(None, Position::RowRelative(42).column());
+    }
+
+    #[test]
     fn display_absolute() {
         assert_eq!("A1", Position::Absolute(0, 0).to_string());
         assert_eq!("C5", Position::Absolute(2, 4).to_string());
@@ -283,6 +315,22 @@ mod tests {
     fn from_str_invalid() {
         assert!(Position::from_str("").is_err());
         assert!(Position::from_str("/foo").is_err());
+    }
+
+    #[test]
+    fn row_some() {
+        assert_eq!(
+            Some(Position::RowRelative(1)),
+            Position::Absolute(42, 1).row());
+
+        assert_eq!(
+            Some(Position::RowRelative(42)),
+            Position::RowRelative(42).row());
+    }
+
+    #[test]
+    fn row_none() {
+        assert_eq!(None, Position::ColumnRelative(42).row());
     }
 
     #[test]

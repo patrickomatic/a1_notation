@@ -52,6 +52,26 @@ impl str::FromStr for RangeOrCell {
 }
 
 impl RangeOrCell {
+    pub fn column(&self) -> Option<Self> {
+        match self {
+            Self::Range { from, to } => Some(Self::Range {
+                from: from.column()?,
+                to: to.column()?,
+            }),
+            Self::Cell(p) => Some(Self::Cell(p.column()?)),
+        }
+    }
+
+    pub fn row(&self) -> Option<Self> {
+        match self {
+            Self::Range { from, to } => Some(Self::Range {
+                from: from.row()?,
+                to: to.row()?,
+            }),
+            Self::Cell(p) => Some(Self::Cell(p.row()?)),
+        }
+    }
+
     pub fn shift_down(&self, rows: usize) -> Self {
         match self {
             Self::Range { from, to } =>
@@ -103,6 +123,24 @@ mod tests {
     use super::*;
 
     #[test]
+    fn column_none() {
+        assert_eq!(None,
+                   RangeOrCell::Cell(Position::RowRelative(5)).column());
+
+        assert_eq!(None,
+                   RangeOrCell::Range {
+                       from: Position::RowRelative(5),
+                       to: Position::RowRelative(10),
+                   }.column());
+    }
+
+    #[test]
+    fn column_some() {
+        assert_eq!(Some(RangeOrCell::Cell(Position::ColumnRelative(5))),
+                   RangeOrCell::Cell(Position::Absolute(5, 5)).column());
+    }
+
+    #[test]
     fn display_cell() {
         assert_eq!(
             "A1", 
@@ -144,6 +182,25 @@ mod tests {
                 to: Position::ColumnRelative(2),
             },
             RangeOrCell::from_str("A:C").unwrap());
+    }
+
+
+    #[test]
+    fn row_some() {
+        assert_eq!(Some(RangeOrCell::Cell(Position::RowRelative(5))),
+                   RangeOrCell::Cell(Position::Absolute(5, 5)).row());
+    }
+
+    #[test]
+    fn row_none() {
+        assert_eq!(None,
+                   RangeOrCell::Cell(Position::ColumnRelative(5)).row());
+
+        assert_eq!(None,
+                   RangeOrCell::Range {
+                       from: Position::ColumnRelative(5),
+                       to: Position::ColumnRelative(10),
+                   }.row());
     }
 
     #[test]

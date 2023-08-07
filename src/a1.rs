@@ -25,6 +25,23 @@ impl A1 {
         A1Builder::default()
     }
 
+    /// Returns just the column (`Position::ColumnRelative`) part of the position.
+    pub fn column(self) -> Option<Self> {
+        Some(Self {
+            reference: self.reference.column()?,
+            ..self
+        })
+    }
+
+    /// Just the row (`Position::RowRelative`) part of the position.
+    pub fn row(self) -> Option<Self> {
+        Some(Self {
+            reference: self.reference.row()?,
+            ..self
+        })
+    }
+
+    /// Clone into a new `A1` with the given `sheet_name`
     pub fn with_sheet_name(self, sheet_name: &str) -> Self {
         Self {
             sheet_name: Some(sheet_name.to_owned()),
@@ -143,6 +160,34 @@ mod tests {
     use super::*;
 
     #[test]
+    fn column_none() {
+        let a1_row = A1 {
+            sheet_name: None,
+            reference: RangeOrCell::Cell(Position::RowRelative(6)),
+        };
+        assert_eq!(None, a1_row.column());
+    }
+
+    #[test]
+    fn column_some() {
+        let a1_absolute = A1 {
+            sheet_name: Some("foo".to_string()),
+            reference: RangeOrCell::Cell(Position::Absolute(1, 1)),
+        };
+        assert_eq!(
+            RangeOrCell::Cell(Position::ColumnRelative(1)),
+            a1_absolute.column().unwrap().reference);
+
+        let a1_column = A1 {
+            sheet_name: None,
+            reference: RangeOrCell::Cell(Position::ColumnRelative(6)),
+        };
+        assert_eq!(
+            RangeOrCell::Cell(Position::ColumnRelative(6)),
+            a1_column.column().unwrap().reference);
+    }
+
+    #[test]
     fn display() {
         let a1_ref = A1 {
             sheet_name: Some("Test1".to_string()),
@@ -193,6 +238,34 @@ mod tests {
         };
 
         assert_eq!(a1_ref, A1::from_str("Foo!A1").unwrap());
+    }
+
+    #[test]
+    fn row_none() {
+        let a1_column = A1 {
+            sheet_name: None,
+            reference: RangeOrCell::Cell(Position::ColumnRelative(6)),
+        };
+        assert_eq!(None, a1_column.row());
+    }
+
+    #[test]
+    fn row_some() {
+        let a1_absolute = A1 {
+            sheet_name: Some("foo".to_string()),
+            reference: RangeOrCell::Cell(Position::Absolute(1, 1)),
+        };
+        assert_eq!(
+            RangeOrCell::Cell(Position::RowRelative(1)),
+            a1_absolute.row().unwrap().reference);
+
+        let a1_column = A1 {
+            sheet_name: None,
+            reference: RangeOrCell::Cell(Position::RowRelative(6)),
+        };
+        assert_eq!(
+            RangeOrCell::Cell(Position::RowRelative(6)),
+            a1_column.row().unwrap().reference);
     }
 
     #[test]

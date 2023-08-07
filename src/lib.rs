@@ -71,7 +71,15 @@
 //
 // TODO:
 //
-// * handle `$` between cells.
+// * make with_x()/with_y() that update the X and Y components and return a new value
+//
+// * make helpers for creating:
+//      * A1::cell(x, y)
+//      * A1::range(a1, a1)
+//      * A1::row(y)
+//      * A1::column(x)
+//
+// * handle `$` between cells (when parsing A1 from_str).
 mod a1;
 mod a1_builder;
 mod error;
