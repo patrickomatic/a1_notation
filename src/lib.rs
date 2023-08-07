@@ -57,17 +57,17 @@
 //!
 //! Here is a table illustrating A1 references:
 //!
-//! |**Reference**|**Meaning**|
-//! |:-----|:-----|
-//! | `"A1"`|Cell A1|
-//! | `"A1:B5"`|Cells A1 through B5|
-//! | `"C5:D9,G9:H16"`|A multiple-area selection|
-//! | `"A:A"`|Column A|
-//! | `"1:1"`|Row 1|
-//! | `"A:C"`|Columns A through C|
-//! | `"1:5"`|Rows 1 through 5|
-//! | `"1:1,3:3,8:8"`|Rows 1, 3, and 8|
-//! | `"A:A,C:C,F:F"`|Columns A, C, and F|
+//! | **Reference**   | **Meaning**               |
+//! |:----------------|:--------------------------|
+//! | `"A1"`          | Cell A1                   |
+//! | `"A1:B5"`       | Cells A1 through B5       |
+//! | `"C5:D9,G9:H16"`| A multiple-area selection |
+//! | `"A:A"`         | Column A                  |
+//! | `"1:1"`         | Row 1                     |
+//! | `"A:C"`         | Columns A through C       |
+//! | `"1:5"`         | Rows 1 through 5          |
+//! | `"1:1,3:3,8:8"` | Rows 1, 3, and 8          |
+//! | `"A:A,C:C,F:F"` | Columns A, C, and F       |
 //!
 //
 // TODO:

@@ -6,7 +6,7 @@ use serde::{Serialize, Deserialize};
 use std::fmt;
 use std::str;
 
-use crate::{Error, Result, Shift};
+use crate::{Error, Result};
 use super::position::Position;
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -51,8 +51,8 @@ impl str::FromStr for RangeOrCell {
     }
 }
 
-impl Shift for RangeOrCell {
-    fn shift_down(&self, rows: usize) -> Self {
+impl RangeOrCell {
+    pub fn shift_down(&self, rows: usize) -> Self {
         match self {
             Self::Range { from, to } =>
                 Self::Range { 
@@ -63,7 +63,7 @@ impl Shift for RangeOrCell {
         }
     }
 
-    fn shift_left(&self, columns: usize) -> Self {
+    pub fn shift_left(&self, columns: usize) -> Self {
         match self {
             Self::Range { from, to } =>
                 Self::Range { 
@@ -74,7 +74,7 @@ impl Shift for RangeOrCell {
         }
     }
 
-    fn shift_right(&self, columns: usize) -> Self {
+    pub fn shift_right(&self, columns: usize) -> Self {
         match self {
             Self::Range { from, to } =>
                 Self::Range { 
@@ -85,7 +85,7 @@ impl Shift for RangeOrCell {
         }
     }
 
-    fn shift_up(&self, rows: usize) -> Self {
+    pub fn shift_up(&self, rows: usize) -> Self {
         match self {
             Self::Range { from, to } =>
                 Self::Range { 

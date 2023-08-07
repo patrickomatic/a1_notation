@@ -3,7 +3,7 @@
 use serde::{Serialize, Deserialize};
 use std::fmt;
 use std::str;
-use crate::{Error, Result, Shift};
+use crate::{Error, Result};
 
 static ALPHA: [char; 26] = [
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 
@@ -44,6 +44,38 @@ impl Position {
             Position::Absolute(_, _) => self.to_string(),
             Position::ColumnRelative(_) => self.a1_left(),
             Position::RowRelative(_) => self.a1_right(),
+        }
+    }
+
+    pub fn shift_down(&self, rows: usize) -> Self {
+        match self {
+            Self::Absolute(x, y) => Self::Absolute(*x, y + rows),
+            Self::ColumnRelative(_) => *self,
+            Self::RowRelative(y) => Self::RowRelative(y + rows),
+        }
+    }
+
+    pub fn shift_left(&self, columns: usize) -> Self {
+        match self {
+            Self::Absolute(x, y) => Self::Absolute(x.saturating_sub(columns), *y),
+            Self::ColumnRelative(x) => Self::ColumnRelative(x.saturating_sub(columns)),
+            Self::RowRelative(_) => *self,
+        }
+    }
+
+    pub fn shift_right(&self, columns: usize) -> Self {
+        match self {
+            Self::Absolute(x, y) => Self::Absolute(x + columns, *y),
+            Self::ColumnRelative(x) => Self::ColumnRelative(x + columns),
+            Self::RowRelative(_) => *self,
+        }
+    }
+
+    pub fn shift_up(&self, rows: usize) -> Self {
+        match self {
+            Self::Absolute(x, y) => Self::Absolute(*x, y.saturating_sub(rows)),
+            Self::ColumnRelative(_) => *self,
+            Self::RowRelative(y) => Self::RowRelative(y.saturating_sub(rows)),
         }
     }
 
@@ -204,40 +236,6 @@ impl fmt::Display for Position {
         };
 
         write!(f, "{left}{separator}{right}")
-    }
-}
-
-impl Shift for Position {
-    fn shift_down(&self, rows: usize) -> Self {
-        match self {
-            Self::Absolute(x, y) => Self::Absolute(*x, y + rows),
-            Self::ColumnRelative(_) => *self,
-            Self::RowRelative(y) => Self::RowRelative(y + rows),
-        }
-    }
-
-    fn shift_left(&self, columns: usize) -> Self {
-        match self {
-            Self::Absolute(x, y) => Self::Absolute(x.saturating_sub(columns), *y),
-            Self::ColumnRelative(x) => Self::ColumnRelative(x.saturating_sub(columns)),
-            Self::RowRelative(_) => *self,
-        }
-    }
-
-    fn shift_right(&self, columns: usize) -> Self {
-        match self {
-            Self::Absolute(x, y) => Self::Absolute(x + columns, *y),
-            Self::ColumnRelative(x) => Self::ColumnRelative(x + columns),
-            Self::RowRelative(_) => *self,
-        }
-    }
-
-    fn shift_up(&self, rows: usize) -> Self {
-        match self {
-            Self::Absolute(x, y) => Self::Absolute(*x, y.saturating_sub(rows)),
-            Self::ColumnRelative(_) => *self,
-            Self::RowRelative(y) => Self::RowRelative(y.saturating_sub(rows)),
-        }
     }
 }
 

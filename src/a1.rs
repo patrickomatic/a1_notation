@@ -11,7 +11,7 @@
 use serde::{Serialize, Deserialize};
 use std::fmt;
 use std::str;
-use crate::{Error, Result, Shift};
+use crate::{Error, Result};
 use super::a1_builder::A1Builder;
 use super::range_or_cell::RangeOrCell;
 use super::position::Position;
@@ -26,6 +26,34 @@ impl A1 {
     /// Returns a builder that can be used to construct instances.
     pub fn builder() -> A1Builder {
         A1Builder::default()
+    }
+
+    pub fn shift_down(&self, rows: usize) -> Self {
+        Self {
+            sheet_name: self.sheet_name.clone(),
+            reference: self.reference.shift_down(rows),
+        }
+    }
+
+    pub fn shift_left(&self, columns: usize) -> Self {
+        Self {
+            sheet_name: self.sheet_name.clone(),
+            reference: self.reference.shift_left(columns),
+        }
+    }
+
+    pub fn shift_right(&self, columns: usize) -> Self {
+        Self {
+            sheet_name: self.sheet_name.clone(),
+            reference: self.reference.shift_right(columns),
+        }
+    }
+
+    pub fn shift_up(&self, rows: usize) -> Self {
+        Self {
+            sheet_name: self.sheet_name.clone(),
+            reference: self.reference.shift_up(rows),
+        }
     }
 
     /// The X component
@@ -64,36 +92,6 @@ impl A1 {
             Ok((Some(sheet_name.to_string()), rest))
         } else {
             Ok((None, a1))
-        }
-    }
-}
-
-impl Shift for A1 {
-    fn shift_down(&self, rows: usize) -> Self {
-        Self {
-            sheet_name: self.sheet_name.clone(),
-            reference: self.reference.shift_down(rows),
-        }
-    }
-
-    fn shift_left(&self, columns: usize) -> Self {
-        Self {
-            sheet_name: self.sheet_name.clone(),
-            reference: self.reference.shift_left(columns),
-        }
-    }
-
-    fn shift_right(&self, columns: usize) -> Self {
-        Self {
-            sheet_name: self.sheet_name.clone(),
-            reference: self.reference.shift_right(columns),
-        }
-    }
-
-    fn shift_up(&self, rows: usize) -> Self {
-        Self {
-            sheet_name: self.sheet_name.clone(),
-            reference: self.reference.shift_up(rows),
         }
     }
 }

@@ -45,10 +45,12 @@ let a1_range = A1::builder()
     
 assert_eq!(a1_range.to_string(), "A:D");
 ```
+
 Once you have an `A1`, you can shift/move it around using `shift_up`, `shift_down`,
 `shift_left` and `shift_right`:
 
 ```
+use a1_notation::Shift;
 let a1 = A1::from_str("C3").unwrap();
 
 assert_eq!(a1.shift_down(2).to_string(), "C5");
