@@ -5,9 +5,8 @@
 //! You can parse an A1-notation value using the `FromStr` trait:
 //!
 //! ```
-//! use std::str::FromStr;
 //! use a1_notation::A1;
-//! let a1 = A1::from_str("A1").unwrap();
+//! let a1 = A1::new("A1").unwrap();
 //!
 //! assert_eq!(a1.x(), Some(0));
 //! assert_eq!(a1.y(), Some(0));
@@ -44,9 +43,8 @@
 //! `shift_left` and `shift_right`:
 //!
 //! ```
-//! # use std::str::FromStr;
 //! # use a1_notation::A1;
-//! let a1 = A1::from_str("C3").unwrap();
+//! let a1 = A1::new("C3").unwrap();
 //!
 //! assert_eq!(a1.clone().shift_down(2).to_string(), "C5");
 //! assert_eq!(a1.clone().shift_right(1).to_string(), "D3");
@@ -71,15 +69,9 @@
 //
 // TODO:
 //
-// * make with_x()/with_y() that update the X and Y components and return a new value
-//
-// * make helpers for creating:
-//      * A1::cell(x, y)
-//      * A1::range(a1, a1)
-//      * A1::row(y)
-//      * A1::column(x)
-//
 // * handle `$` between cells (when parsing A1 from_str).
+use std::str::FromStr;
+
 mod a1;
 mod a1_builder;
 mod error;
@@ -93,3 +85,35 @@ pub use position::Position;
 pub use range_or_cell::RangeOrCell;
 
 pub type Result<T> = std::result::Result<T, Error>;
+
+pub fn cell(x: usize, y: usize) -> A1 {
+    A1 {
+        sheet_name: None,
+        reference: RangeOrCell::Cell(Position::Absolute(x, y)),
+    }
+}
+
+pub fn new(s: &str) -> Result<A1> {
+    A1::from_str(s)
+}
+
+pub fn range(from: Position, to: Position) -> A1 {
+    A1 {
+        sheet_name: None,
+        reference: RangeOrCell::Range { from, to },
+    }
+}
+
+pub fn column(x: usize) -> A1 {
+    A1 {
+        sheet_name: None,
+        reference: RangeOrCell::Cell(Position::ColumnRelative(x)),
+    }
+}
+
+pub fn row(y: usize) -> A1 {
+    A1 {
+        sheet_name: None,
+        reference: RangeOrCell::Cell(Position::RowRelative(y)),
+    }
+}
