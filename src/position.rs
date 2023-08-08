@@ -95,6 +95,68 @@ impl Position {
         }
     }
 
+    /// Set the `x` component with the following (hopefully sensical rules):
+    ///
+    /// If it's a an absolute position, we just change the column:
+    /// ```
+    /// # use a1_notation::Position;
+    /// let pos = Position::Absolute(4, 5);
+    /// assert_eq!(Position::Absolute(2, 5), pos.with_x(2));
+    /// ```
+    ///
+    /// If it's a column reference, keep it a column reference but point to the new `x`:
+    /// ```
+    /// # use a1_notation::Position;
+    /// let pos = Position::ColumnRelative(42);
+    /// assert_eq!(Position::ColumnRelative(1), pos.with_x(1));
+    /// ```
+    ///
+    /// And finally if it's a row reference, keep the `y` component but set the new `x` component,
+    /// making it an absolute position:
+    /// ```
+    /// # use a1_notation::Position;
+    /// let pos = Position::RowRelative(3);
+    /// assert_eq!(Position::Absolute(6, 3), pos.with_x(6));
+    /// ```
+    pub fn with_x(&self, x: usize) -> Self {
+        match self {
+            Self::Absolute(_, y) => Self::Absolute(x, *y),
+            Self::ColumnRelative(_) => Self::ColumnRelative(x),
+            Self::RowRelative(y) => Self::Absolute(x, *y),
+        }
+    }
+
+    /// Set the `y` component with the following (hopefully sensical rules):
+    ///
+    /// If it's a an absolute position, we just change the row:
+    /// ```
+    /// # use a1_notation::Position;
+    /// let pos = Position::Absolute(4, 5);
+    /// assert_eq!(Position::Absolute(4, 2), pos.with_y(2));
+    /// ```
+    ///
+    /// If it's a row reference, keep it a row reference but point to the new `y`:
+    /// ```
+    /// # use a1_notation::Position;
+    /// let pos = Position::RowRelative(42);
+    /// assert_eq!(Position::RowRelative(1), pos.with_y(1));
+    /// ```
+    ///
+    /// And finally if it's a column reference, keep the `x` component but set the new `y` 
+    /// component, making it an absolute position:
+    /// ```
+    /// # use a1_notation::Position;
+    /// let pos = Position::ColumnRelative(3);
+    /// assert_eq!(Position::Absolute(3, 6), pos.with_y(6));
+    /// ```
+    pub fn with_y(&self, y: usize) -> Self {
+        match self {
+            Self::Absolute(x, _) => Self::Absolute(*x, y),
+            Self::ColumnRelative(x) => Self::Absolute(*x, y),
+            Self::RowRelative(_) => Self::RowRelative(y),
+        }
+    }
+
     /// This function assumes that you've consumed the first part (the "A") of the A1 string and
     /// now we're just consuming the integer part
     fn parse_a1_y(a1: &str) -> Result<Option<usize>> {

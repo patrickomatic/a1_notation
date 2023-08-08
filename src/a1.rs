@@ -56,6 +56,24 @@ impl A1 {
         }
     }
 
+    /// Return a new `A1` with the given X position set.  If the `reference` already has an `x`
+    /// component, it will be overwritten in the returned value.
+    pub fn with_x(self, x: usize) -> Self {
+        Self {
+            sheet_name: self.sheet_name,
+            reference: self.reference.with_x(x),
+        }
+    }
+
+    /// Return a new `A1` with the given Y position set.  If the `reference` already has an `y`
+    /// component, it will be overwritten in the returned value.
+    pub fn with_y(self, y: usize) -> Self {
+        Self {
+            sheet_name: self.sheet_name,
+            reference: self.reference.with_y(y),
+        }
+    }
+
     /// Returns a new `A1` shifted downwards by `rows` rows.
     pub fn shift_down(self, rows: usize) -> Self {
         Self {
@@ -189,27 +207,27 @@ mod tests {
 
     #[test]
     fn display() {
-        let a1_ref = A1 {
+        let a1 = A1 {
             sheet_name: Some("Test1".to_string()),
             reference: RangeOrCell::Cell(Position::Absolute(1, 1)),
         };
 
-        assert_eq!("Test1!B2", a1_ref.to_string());
+        assert_eq!("Test1!B2", a1.to_string());
     }
 
     #[test]
     fn display_without_sheet_name() {
-        let a1_ref = A1 {
+        let a1 = A1 {
             sheet_name: None,
             reference: RangeOrCell::Cell(Position::Absolute(0, 0)),
         };
 
-        assert_eq!("A1", a1_ref.to_string());
+        assert_eq!("A1", a1.to_string());
     }
 
     #[test]
     fn display_range() {
-        let a1_ref = A1 {
+        let a1 = A1 {
             sheet_name: None,
             reference: RangeOrCell::Range {
                 from: Position::ColumnRelative(1),
@@ -217,27 +235,27 @@ mod tests {
             },
         };
 
-        assert_eq!("B:F", a1_ref.to_string());
+        assert_eq!("B:F", a1.to_string());
     }
 
     #[test]
     fn from_str() {
-        let a1_ref = A1 {
+        let a1 = A1 {
             sheet_name: None,
             reference: RangeOrCell::Cell(Position::Absolute(0, 0)),
         };
 
-        assert_eq!(a1_ref, A1::from_str("A1").unwrap());
+        assert_eq!(a1, A1::from_str("A1").unwrap());
     }
 
     #[test]
     fn from_str_sheet_name() {
-        let a1_ref = A1 {
+        let a1 = A1 {
             sheet_name: Some("Foo".to_string()),
             reference: RangeOrCell::Cell(Position::Absolute(0, 0)),
         };
 
-        assert_eq!(a1_ref, A1::from_str("Foo!A1").unwrap());
+        assert_eq!(a1, A1::from_str("Foo!A1").unwrap());
     }
 
     #[test]
@@ -246,6 +264,7 @@ mod tests {
             sheet_name: None,
             reference: RangeOrCell::Cell(Position::ColumnRelative(6)),
         };
+
         assert_eq!(None, a1_column.row());
     }
 
@@ -270,42 +289,42 @@ mod tests {
 
     #[test]
     fn shift_down() {
-        let a1_ref = A1 {
+        let a1 = A1 {
             sheet_name: Some("Test1".to_string()),
             reference: RangeOrCell::Cell(Position::Absolute(1, 1)),
         };
 
-        assert_eq!("Test1!B3", a1_ref.shift_down(1).to_string());
+        assert_eq!("Test1!B3", a1.shift_down(1).to_string());
     }
 
     #[test]
     fn shift_left() {
-        let a1_ref = A1 {
+        let a1 = A1 {
             sheet_name: Some("Test1".to_string()),
             reference: RangeOrCell::Cell(Position::Absolute(1, 1)),
         };
 
-        assert_eq!("Test1!A2", a1_ref.shift_left(1).to_string());
+        assert_eq!("Test1!A2", a1.shift_left(1).to_string());
     }
 
     #[test]
     fn shift_right() {
-        let a1_ref = A1 {
+        let a1 = A1 {
             sheet_name: None,
             reference: RangeOrCell::Cell(Position::Absolute(1, 1)),
         };
 
-        assert_eq!("C2", a1_ref.shift_right(1).to_string());
+        assert_eq!("C2", a1.shift_right(1).to_string());
     }
 
     #[test]
     fn shift_up() {
-        let a1_ref = A1 {
+        let a1 = A1 {
             sheet_name: None,
             reference: RangeOrCell::Cell(Position::Absolute(1, 1)),
         };
 
-        assert_eq!("B1", a1_ref.shift_up(1).to_string());
+        assert_eq!("B1", a1.shift_up(1).to_string());
     }
 
     #[test]
@@ -316,6 +335,26 @@ mod tests {
         };
 
         assert_eq!(Some("foo".to_string()), a1.with_sheet_name("foo").sheet_name);
+    }
+
+    #[test]
+    fn with_x() {
+        let a1 = A1 {
+            sheet_name: None,
+            reference: RangeOrCell::Cell(Position::Absolute(1, 1)),
+        };
+
+        assert_eq!("F2", a1.with_x(5).to_string());
+    }
+
+    #[test]
+    fn with_y() {
+        let a1 = A1 {
+            sheet_name: None,
+            reference: RangeOrCell::Cell(Position::Absolute(1, 1)),
+        };
+
+        assert_eq!("B22", a1.with_y(21).to_string());
     }
 
     #[test]

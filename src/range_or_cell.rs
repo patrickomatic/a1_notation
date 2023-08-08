@@ -54,20 +54,24 @@ impl str::FromStr for RangeOrCell {
 impl RangeOrCell {
     pub fn column(&self) -> Option<Self> {
         match self {
-            Self::Range { from, to } => Some(Self::Range {
-                from: from.column()?,
-                to: to.column()?,
-            }),
+            Self::Range { from, to } => 
+                Some(Self::Range {
+                    from: from.column()?,
+                    to: to.column()?,
+                }),
+
             Self::Cell(p) => Some(Self::Cell(p.column()?)),
         }
     }
 
     pub fn row(&self) -> Option<Self> {
         match self {
-            Self::Range { from, to } => Some(Self::Range {
-                from: from.row()?,
-                to: to.row()?,
-            }),
+            Self::Range { from, to } =>
+                Some(Self::Range {
+                    from: from.row()?,
+                    to: to.row()?,
+                }),
+
             Self::Cell(p) => Some(Self::Cell(p.row()?)),
         }
     }
@@ -79,6 +83,7 @@ impl RangeOrCell {
                     from: from.shift_down(rows),
                     to: to.shift_down(rows),
                 },
+
             Self::Cell(p) => Self::Cell(p.shift_down(rows)),
         }
     }
@@ -90,6 +95,7 @@ impl RangeOrCell {
                     from: from.shift_left(columns),
                     to: to.shift_left(columns),
                 },
+
             Self::Cell(p) => Self::Cell(p.shift_left(columns)),
         }
     }
@@ -101,6 +107,7 @@ impl RangeOrCell {
                     from: from.shift_right(columns),
                     to: to.shift_right(columns),
                 },
+
             Self::Cell(p) => Self::Cell(p.shift_right(columns)),
         }
     }
@@ -112,9 +119,39 @@ impl RangeOrCell {
                     from: from.shift_up(rows),
                     to: to.shift_up(rows),
                 },
+
             Self::Cell(p) => Self::Cell(p.shift_up(rows)),
         }
     }
+
+    pub fn with_x(&self, x: usize) -> Self {
+        match self {
+            // TODO: I'm not sure how an end-user would do this with ranges, but we need to handle
+            // it so here we go. but I dunno if this is the most sensical thing to do
+            Self::Range { from, to } =>
+                Self::Range {
+                    from: from.with_x(x),
+                    to: to.with_x(x),
+                },
+
+            Self::Cell(p) => Self::Cell(p.with_x(x)),
+        }
+    }
+
+    pub fn with_y(&self, y: usize) -> Self {
+        match self {
+            // TODO: I'm not sure how an end-user would do this with ranges, but we need to handle
+            // it so here we go. but I dunno if this is the most sensical thing to do
+            Self::Range { from, to } =>
+                Self::Range {
+                    from: from.with_y(y),
+                    to: to.with_y(y),
+                },
+
+            Self::Cell(p) => Self::Cell(p.with_y(y)),
+        }
+    }
+
 }
 
 #[cfg(test)] 
@@ -281,5 +318,45 @@ mod tests {
         assert_eq!(
             RangeOrCell::Cell(Position::Absolute(0, 100)).shift_up(10), 
             RangeOrCell::Cell(Position::Absolute(0, 90)));
+    }
+
+    #[test]
+    fn with_x_cell() {
+        assert_eq!(
+            RangeOrCell::Cell(Position::Absolute(0, 100)).with_x(10), 
+            RangeOrCell::Cell(Position::Absolute(10, 100)));
+    }
+
+    #[test]
+    fn with_x_range() {
+        assert_eq!(
+            RangeOrCell::Range {
+                from: Position::RowRelative(0),
+                to: Position::RowRelative(5),
+            }.with_x(5),
+            RangeOrCell::Range {
+                from: Position::Absolute(5, 0),
+                to: Position::Absolute(5, 5),
+            });
+    }
+
+    #[test]
+    fn with_y_cell() {
+        assert_eq!(
+            RangeOrCell::Cell(Position::Absolute(0, 100)).with_y(10), 
+            RangeOrCell::Cell(Position::Absolute(0, 10)));
+    }
+    
+    #[test]
+    fn with_y_range() {
+        assert_eq!(
+            RangeOrCell::Range {
+                from: Position::RowRelative(0),
+                to: Position::RowRelative(5),
+            }.with_y(5),
+            RangeOrCell::Range {
+                from: Position::RowRelative(5),
+                to: Position::RowRelative(5),
+            });
     }
 }
