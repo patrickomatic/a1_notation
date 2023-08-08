@@ -125,7 +125,7 @@ impl RangeOrCell {
     }
 
     pub fn with_x(&self, x: usize) -> Self {
-        match self {
+        (match self {
             // TODO: I'm not sure how an end-user would do this with ranges, but we need to handle
             // it so here we go. but I dunno if this is the most sensical thing to do
             Self::Range { from, to } =>
@@ -135,11 +135,11 @@ impl RangeOrCell {
                 },
 
             Self::Cell(p) => Self::Cell(p.with_x(x)),
-        }
+        }).simplify()
     }
 
     pub fn with_y(&self, y: usize) -> Self {
-        match self {
+        (match self {
             // TODO: I'm not sure how an end-user would do this with ranges, but we need to handle
             // it so here we go. but I dunno if this is the most sensical thing to do
             Self::Range { from, to } =>
@@ -149,9 +149,22 @@ impl RangeOrCell {
                 },
 
             Self::Cell(p) => Self::Cell(p.with_y(y)),
-        }
+        }).simplify()
     }
 
+    /// Sometimes by manipulating a range with `with_x()`/`with_y()` you can end up with a range
+    /// where `to` and `from` are the same.  In that case simplify it to just a cell
+    fn simplify(&self) -> Self {
+        if let Self::Range { from, to } = self {
+            if from == to {
+                // they're both the same, simplify to just one (it doesn't matter which since
+                // they're the same)
+                return Self::Cell(*from)
+            }
+        }
+
+        *self
+    }
 }
 
 #[cfg(test)] 
@@ -341,6 +354,16 @@ mod tests {
     }
 
     #[test]
+    fn with_x_range_simplify() {
+        assert_eq!(
+            RangeOrCell::Range {
+                from: Position::ColumnRelative(0),
+                to: Position::ColumnRelative(5),
+            }.with_x(6),
+            RangeOrCell::Cell(Position::ColumnRelative(6)));
+    }
+
+    #[test]
     fn with_y_cell() {
         assert_eq!(
             RangeOrCell::Cell(Position::Absolute(0, 100)).with_y(10), 
@@ -351,12 +374,22 @@ mod tests {
     fn with_y_range() {
         assert_eq!(
             RangeOrCell::Range {
+                from: Position::ColumnRelative(0),
+                to: Position::ColumnRelative(5),
+            }.with_y(6),
+            RangeOrCell::Range {
+                from: Position::Absolute(0, 6),
+                to: Position::Absolute(5, 6),
+            });
+    }
+
+    #[test]
+    fn with_y_range_simplify() {
+        assert_eq!(
+            RangeOrCell::Range {
                 from: Position::RowRelative(0),
                 to: Position::RowRelative(5),
-            }.with_y(5),
-            RangeOrCell::Range {
-                from: Position::RowRelative(5),
-                to: Position::RowRelative(5),
-            });
+            }.with_y(6),
+            RangeOrCell::Cell(Position::RowRelative(6)));
     }
 }
