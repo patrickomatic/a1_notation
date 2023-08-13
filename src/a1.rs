@@ -41,39 +41,6 @@ impl A1 {
         })
     }
 
-    /// Clone into a new `A1` with the given `sheet_name`
-    pub fn with_sheet_name(self, sheet_name: &str) -> Self {
-        Self {
-            sheet_name: Some(sheet_name.to_owned()),
-            ..self
-        }
-    }
-
-    pub fn without_sheet_name(self) -> Self {
-        Self {
-            sheet_name: None,
-            ..self
-        }
-    }
-
-    /// Return a new `A1` with the given X position set.  If the `reference` already has an `x`
-    /// component, it will be overwritten in the returned value.
-    pub fn with_x(self, x: usize) -> Self {
-        Self {
-            sheet_name: self.sheet_name,
-            reference: self.reference.with_x(x),
-        }
-    }
-
-    /// Return a new `A1` with the given Y position set.  If the `reference` already has an `y`
-    /// component, it will be overwritten in the returned value.
-    pub fn with_y(self, y: usize) -> Self {
-        Self {
-            sheet_name: self.sheet_name,
-            reference: self.reference.with_y(y),
-        }
-    }
-
     /// Returns a new `A1` shifted downwards by `rows` rows.
     pub fn shift_down(self, rows: usize) -> Self {
         Self {
@@ -106,6 +73,39 @@ impl A1 {
         }
     }
 
+    /// Clone into a new `A1` with the given `sheet_name`
+    pub fn with_sheet_name(self, sheet_name: &str) -> Self {
+        Self {
+            sheet_name: Some(sheet_name.to_owned()),
+            ..self
+        }
+    }
+
+    /// Return a new `A1` with the given X position set.  If the `reference` already has an `x`
+    /// component, it will be overwritten in the returned value.
+    pub fn with_x(self, x: usize) -> Self {
+        Self {
+            sheet_name: self.sheet_name,
+            reference: self.reference.with_x(x),
+        }
+    }
+
+    /// Return a new `A1` with the given Y position set.  If the `reference` already has an `y`
+    /// component, it will be overwritten in the returned value.
+    pub fn with_y(self, y: usize) -> Self {
+        Self {
+            sheet_name: self.sheet_name,
+            reference: self.reference.with_y(y),
+        }
+    }
+
+    pub fn without_sheet_name(self) -> Self {
+        Self {
+            sheet_name: None,
+            ..self
+        }
+    }
+
     /// The X component
     pub fn x(&self) -> Option<usize> {
         match self.cell_reference()? {
@@ -114,18 +114,18 @@ impl A1 {
         }
     }
 
-    /// The Y component
-    pub fn y(&self) -> Option<usize> {
-        match self.cell_reference()? {
-            Position::Absolute(_, y) | Position::RowRelative(y) => Some(y),
-            _ => None,
-        }
-    }
-
     /// The X and Y components - only if both are set
     pub fn xy(&self) -> Option<(usize, usize)> {
         match self.cell_reference()? {
             Position::Absolute(x, y) => Some((x, y)),
+            _ => None,
+        }
+    }
+
+    /// The Y component
+    pub fn y(&self) -> Option<usize> {
+        match self.cell_reference()? {
+            Position::Absolute(_, y) | Position::RowRelative(y) => Some(y),
             _ => None,
         }
     }

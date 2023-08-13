@@ -55,10 +55,7 @@ impl RangeOrCell {
     pub fn column(&self) -> Option<Self> {
         match self {
             Self::Range { from, to } => 
-                Some(Self::Range {
-                    from: from.column()?,
-                    to: to.column()?,
-                }),
+                Some(Self::Range { from: from.column()?, to: to.column()? }),
 
             Self::Cell(p) => Some(Self::Cell(p.column()?)),
         }
@@ -67,10 +64,7 @@ impl RangeOrCell {
     pub fn row(&self) -> Option<Self> {
         match self {
             Self::Range { from, to } =>
-                Some(Self::Range {
-                    from: from.row()?,
-                    to: to.row()?,
-                }),
+                Some(Self::Range { from: from.row()?, to: to.row()? }),
 
             Self::Cell(p) => Some(Self::Cell(p.row()?)),
         }
@@ -79,10 +73,7 @@ impl RangeOrCell {
     pub fn shift_down(&self, rows: usize) -> Self {
         match self {
             Self::Range { from, to } =>
-                Self::Range { 
-                    from: from.shift_down(rows),
-                    to: to.shift_down(rows),
-                },
+                Self::Range { from: from.shift_down(rows), to: to.shift_down(rows) },
 
             Self::Cell(p) => Self::Cell(p.shift_down(rows)),
         }
@@ -91,10 +82,7 @@ impl RangeOrCell {
     pub fn shift_left(&self, columns: usize) -> Self {
         match self {
             Self::Range { from, to } =>
-                Self::Range { 
-                    from: from.shift_left(columns),
-                    to: to.shift_left(columns),
-                },
+                Self::Range { from: from.shift_left(columns), to: to.shift_left(columns) },
 
             Self::Cell(p) => Self::Cell(p.shift_left(columns)),
         }
@@ -103,10 +91,7 @@ impl RangeOrCell {
     pub fn shift_right(&self, columns: usize) -> Self {
         match self {
             Self::Range { from, to } =>
-                Self::Range { 
-                    from: from.shift_right(columns),
-                    to: to.shift_right(columns),
-                },
+                Self::Range { from: from.shift_right(columns), to: to.shift_right(columns) },
 
             Self::Cell(p) => Self::Cell(p.shift_right(columns)),
         }
@@ -115,10 +100,7 @@ impl RangeOrCell {
     pub fn shift_up(&self, rows: usize) -> Self {
         match self {
             Self::Range { from, to } =>
-                Self::Range { 
-                    from: from.shift_up(rows),
-                    to: to.shift_up(rows),
-                },
+                Self::Range { from: from.shift_up(rows), to: to.shift_up(rows) },
 
             Self::Cell(p) => Self::Cell(p.shift_up(rows)),
         }
@@ -126,13 +108,8 @@ impl RangeOrCell {
 
     pub fn with_x(&self, x: usize) -> Self {
         (match self {
-            // TODO: I'm not sure how an end-user would do this with ranges, but we need to handle
-            // it so here we go. but I dunno if this is the most sensical thing to do
             Self::Range { from, to } =>
-                Self::Range {
-                    from: from.with_x(x),
-                    to: to.with_x(x),
-                },
+                Self::Range { from: from.with_x(x), to: to.with_x(x) },
 
             Self::Cell(p) => Self::Cell(p.with_x(x)),
         }).simplify()
@@ -140,13 +117,8 @@ impl RangeOrCell {
 
     pub fn with_y(&self, y: usize) -> Self {
         (match self {
-            // TODO: I'm not sure how an end-user would do this with ranges, but we need to handle
-            // it so here we go. but I dunno if this is the most sensical thing to do
             Self::Range { from, to } =>
-                Self::Range {
-                    from: from.with_y(y),
-                    to: to.with_y(y),
-                },
+                Self::Range { from: from.with_y(y), to: to.with_y(y) },
 
             Self::Cell(p) => Self::Cell(p.with_y(y)),
         }).simplify()
