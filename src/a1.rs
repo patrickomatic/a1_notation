@@ -41,6 +41,13 @@ impl A1 {
         })
     }
 
+    /// Is `other` completely contained within `self`?  They also must be in the same sheet
+    /// (meaning `self.sheet_name` == `other.sheet_name`).
+    pub fn contains(&self, other: &Self) -> bool {
+        self.sheet_name == other.sheet_name
+            && self.reference.contains(&other.reference)
+    }
+
     /// Returns a new `A1` shifted downwards by `rows` rows.
     pub fn shift_down(self, rows: usize) -> Self {
         Self {
@@ -203,6 +210,34 @@ mod tests {
         assert_eq!(
             RangeOrCell::Cell(Position::ColumnRelative(6)),
             a1_column.column().unwrap().reference);
+    }
+
+    #[test]
+    fn contains_different_name() {
+        let a1_a = A1 {
+            sheet_name: Some("Something".to_string()),
+            reference: RangeOrCell::Cell(Position::Absolute(1, 1)),
+        };
+        let a1_b = A1 {
+            sheet_name: Some("Something else".to_string()),
+            reference: RangeOrCell::Cell(Position::Absolute(1, 1)),
+        };
+
+        assert!(!a1_a.contains(&a1_b));
+    }
+
+    #[test]
+    fn contains_true() {
+        let a1_a = A1 {
+            sheet_name: None,
+            reference: RangeOrCell::Cell(Position::Absolute(1, 1)),
+        };
+        let a1_b = A1 {
+            sheet_name: None,
+            reference: RangeOrCell::Cell(Position::Absolute(1, 1)),
+        };
+
+        assert!(a1_a.contains(&a1_b));
     }
 
     #[test]

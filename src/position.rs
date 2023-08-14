@@ -19,18 +19,61 @@ pub enum Position {
     /// * `y` - The row index
     Absolute(usize, usize),
 
+    /// ColumnRelative(x)
+    ///
+    /// * `x` - The column index.  Starts at 0 being the left-most column.
+    ColumnRelative(usize),
+
     /// RowRelative(y)
     ///
     /// * `y` - The row index.  Starts at 0 being the very top row.
     RowRelative(usize),
-
-    /// ColumnRelative(y)
-    ///
-    /// * `x` - The column index.  Starts at 0 being the left-most column.
-    ColumnRelative(usize),
 }
 
 impl Position {
+    pub fn column(&self) -> Option<Self> {
+        match self {
+            Position::ColumnRelative(x) | Position::Absolute(x, _) =>
+                Some(Self::ColumnRelative(*x)),
+            Position::RowRelative(_) => None,
+        }
+    }
+
+    /// Is `other` completely contained by `self`?
+    pub fn contains(&self, other: &Self) -> bool {
+        match self {
+            // if `self` is an absolute reference, the only way it can contain `other` would be if
+            // `other` has the same coordinates.  i.e., is the same cell.  Anything else is `false`
+            Self::Absolute(x, y) => {
+                match other {
+                    Self::Absolute(other_x, other_y) =>
+                        x == other_x && y == other_y,
+                    _ => false,
+                }
+            },
+
+            // this is only `true` if `other` is absolute and it falls within our column.  or if
+            // `other` is the same ColumnRelative reference.
+            Self::ColumnRelative(x) => {
+                match other {
+                    Self::Absolute(other_x, _) | Self::ColumnRelative(other_x) =>
+                        x == other_x,
+                    Self::RowRelative(_) => false,
+                }
+            },
+
+            // this is only `true` if `other` is absolute and it falls within our row.  or if
+            // `other` is the same RowRelative reference.
+            Self::RowRelative(y) => {
+                match other {
+                    Self::Absolute(_, other_y) | Self::RowRelative(other_y) =>
+                        y == other_y,
+                    Self::ColumnRelative(_) => false,
+                }
+            },
+        }
+    }
+
     /// When a relative reference is displayed within a range, the semantics are slightly different
     /// - for example when we print the column A by itself, it looks like:
     ///
@@ -47,11 +90,79 @@ impl Position {
         }
     }
 
-    pub fn column(&self) -> Option<Self> {
+    /// Is `self` (inclusively) above `other`?
+    pub fn is_above(&self, other: &Self) -> bool {
         match self {
-            Position::ColumnRelative(x) | Position::Absolute(x, _) =>
-                Some(Self::ColumnRelative(*x)),
-            Position::RowRelative(_) => None,
+            Self::Absolute(_, y) => {
+                match other {
+                    Self::Absolute(_, other_y) | Self::RowRelative(other_y) => y <= other_y,
+                    Self::ColumnRelative(_) => false,
+                }
+            },
+            Self::ColumnRelative(_) => false,
+            Self::RowRelative(y) => {
+                match other {
+                    Self::Absolute(_, other_y) | Self::RowRelative(other_y) => y <= other_y,
+                    Self::ColumnRelative(_) => false,
+                }
+            },
+        }
+    }
+
+    /// Is `self` (inclusively) below `other`?
+    pub fn is_below(&self, other: &Self) -> bool {
+        match self {
+            Self::Absolute(_, y) => {
+                match other {
+                    Self::Absolute(_, other_y) | Self::RowRelative(other_y) => y >= other_y,
+                    Self::ColumnRelative(_) => false,
+                }
+            },
+            Self::ColumnRelative(_) => false,
+            Self::RowRelative(y) => {
+                match other {
+                    Self::Absolute(_, other_y) | Self::RowRelative(other_y) => y >= other_y,
+                    Self::ColumnRelative(_) => false,
+                }
+            },
+        }
+    }
+
+    /// Is `self` (inclusively) left of `other`?
+    pub fn is_left_of(&self, other: &Self) -> bool {
+        match self {
+            Self::Absolute(x, _) => {
+                match other {
+                    Self::Absolute(other_x, _) | Self::ColumnRelative(other_x) => x <= other_x,
+                    Self::RowRelative(_) => false,
+                }
+            },
+            Self::ColumnRelative(x) => {
+                match other {
+                    Self::Absolute(other_x, _) | Self::ColumnRelative(other_x) => x <= other_x,
+                    Self::RowRelative(_) => false,
+                }
+            },
+            Self::RowRelative(_) => false,
+        }
+    }
+
+    /// Is `self` (inclusively) right of `other`?
+    pub fn is_right_of(&self, other: &Self) -> bool {
+        match self {
+            Self::Absolute(x, _) => {
+                match other {
+                    Self::Absolute(other_x, _) | Self::ColumnRelative(other_x) => x >= other_x,
+                    Self::RowRelative(_) => false,
+                }
+            },
+            Self::ColumnRelative(x) => {
+                match other {
+                    Self::Absolute(other_x, _) | Self::ColumnRelative(other_x) => x >= other_x,
+                    Self::RowRelative(_) => false,
+                }
+            },
+            Self::RowRelative(_) => false,
         }
     }
 
@@ -246,51 +357,6 @@ impl Position {
     }
 }
 
-impl str::FromStr for Position {
-    type Err = Error;
-
-    fn from_str(a1: &str) -> Result<Self> {
-        let (x, rest) = Self::parse_a1_x(a1)?;
-        let y = Self::parse_a1_y(rest)?;
-
-        if let Some(x) = x {
-            if let Some(y) = y {
-                Ok(Self::Absolute(x, y))
-            } else {
-                Ok(Self::ColumnRelative(x))
-            }
-        } else if let Some(y) = y {
-            Ok(Self::RowRelative(y))
-        } else {
-            Err(Error::A1ParseError {
-                bad_input: a1.to_owned(),
-                message: "Error parsing A1 notation: could not determine a row or column".to_owned(),
-            })
-        }
-    }
-}
-
-/// We allow converting from a more specific type (Position) to a more general one (RangeOrCell)
-/// but it can't happen the other way around, so therefore we need to implement `Into` rather than
-/// `From`
-#[allow(clippy::from_over_into)]
-impl Into<RangeOrCell> for Position {
-    fn into(self) -> RangeOrCell {
-        RangeOrCell::Cell(self)
-    }
-}
-
-/// We allow converting from a more specific type (Position) to a more general one (A1) but it 
-/// can't happen the other way around, so therefore we need to implement `Into` rather than
-/// `From`
-#[allow(clippy::from_over_into)]
-impl Into<A1> for Position {
-    fn into(self) -> A1 {
-        A1 { sheet_name: None, reference: self.into() }
-    }
-}
-
-
 impl fmt::Display for Position {
     /// Converts a cell position to a String. The basic idea with A1 notation is that the row is
     /// represented by a letter A-Z and the column numerically, with the first position being `1`
@@ -338,6 +404,50 @@ impl fmt::Display for Position {
     }
 }
 
+impl str::FromStr for Position {
+    type Err = Error;
+
+    fn from_str(a1: &str) -> Result<Self> {
+        let (x, rest) = Self::parse_a1_x(a1)?;
+        let y = Self::parse_a1_y(rest)?;
+
+        if let Some(x) = x {
+            if let Some(y) = y {
+                Ok(Self::Absolute(x, y))
+            } else {
+                Ok(Self::ColumnRelative(x))
+            }
+        } else if let Some(y) = y {
+            Ok(Self::RowRelative(y))
+        } else {
+            Err(Error::A1ParseError {
+                bad_input: a1.to_owned(),
+                message: "Error parsing A1 notation: could not determine a row or column".to_owned(),
+            })
+        }
+    }
+}
+
+/// We allow converting from a more specific type (Position) to a more general one (A1) but it 
+/// can't happen the other way around, so therefore we need to implement `Into` rather than
+/// `From`
+#[allow(clippy::from_over_into)]
+impl Into<A1> for Position {
+    fn into(self) -> A1 {
+        A1 { sheet_name: None, reference: self.into() }
+    }
+}
+
+/// We allow converting from a more specific type (Position) to a more general one (RangeOrCell)
+/// but it can't happen the other way around, so therefore we need to implement `Into` rather than
+/// `From`
+#[allow(clippy::from_over_into)]
+impl Into<RangeOrCell> for Position {
+    fn into(self) -> RangeOrCell {
+        RangeOrCell::Cell(self)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
@@ -357,6 +467,35 @@ mod tests {
     #[test]
     fn column_none() {
         assert_eq!(None, Position::RowRelative(42).column());
+    }
+
+    #[test]
+    fn contains_absolute() {
+        assert!(Position::Absolute(0, 0).contains(&Position::Absolute(0, 0)));
+
+        assert!(!Position::Absolute(0, 0).contains(&Position::Absolute(1, 4)));
+        assert!(!Position::Absolute(0, 0).contains(&Position::ColumnRelative(1)));
+        assert!(!Position::Absolute(0, 0).contains(&Position::RowRelative(1)));
+    }
+
+    #[test]
+    fn contains_column_relative() {
+        assert!(Position::ColumnRelative(0).contains(&Position::Absolute(0, 0)));
+        assert!(Position::ColumnRelative(0).contains(&Position::ColumnRelative(0)));
+
+        assert!(!Position::ColumnRelative(0).contains(&Position::Absolute(1, 4)));
+        assert!(!Position::ColumnRelative(0).contains(&Position::ColumnRelative(1)));
+        assert!(!Position::ColumnRelative(0).contains(&Position::RowRelative(1)));
+    }
+
+    #[test]
+    fn contains_row_relative() {
+        assert!(Position::RowRelative(0).contains(&Position::Absolute(0, 0)));
+        assert!(Position::RowRelative(0).contains(&Position::RowRelative(0)));
+
+        assert!(!Position::RowRelative(0).contains(&Position::Absolute(1, 4)));
+        assert!(!Position::RowRelative(0).contains(&Position::RowRelative(1)));
+        assert!(!Position::RowRelative(0).contains(&Position::ColumnRelative(1)));
     }
 
     #[test]
@@ -398,6 +537,114 @@ mod tests {
     fn from_str_invalid() {
         assert!(Position::from_str("").is_err());
         assert!(Position::from_str("/foo").is_err());
+    }
+
+    #[test]
+    fn is_above_absolute() {
+        assert!(Position::Absolute(5, 5).is_above(&Position::Absolute(10, 10)));
+        assert!(Position::Absolute(5, 5).is_above(&Position::RowRelative(10)));
+
+        assert!(!Position::Absolute(5, 5).is_above(&Position::Absolute(1, 1)));
+        assert!(!Position::Absolute(5, 5).is_above(&Position::RowRelative(0)));
+        assert!(!Position::Absolute(5, 5).is_above(&Position::ColumnRelative(0)));
+    }
+
+    #[test]
+    fn is_above_column_relative() {
+        assert!(!Position::ColumnRelative(5).is_above(&Position::Absolute(0, 0)));
+        assert!(!Position::ColumnRelative(5).is_above(&Position::ColumnRelative(0)));
+        assert!(!Position::ColumnRelative(5).is_above(&Position::RowRelative(0)));
+    }
+
+    #[test]
+    fn is_above_row_relative() {
+        assert!(Position::RowRelative(5).is_above(&Position::Absolute(10, 10)));
+        assert!(Position::RowRelative(5).is_above(&Position::RowRelative(10)));
+
+        assert!(!Position::RowRelative(5).is_above(&Position::Absolute(1, 1)));
+        assert!(!Position::RowRelative(5).is_above(&Position::RowRelative(0)));
+        assert!(!Position::RowRelative(5).is_above(&Position::ColumnRelative(0)));
+    }
+
+    #[test]
+    fn is_below_absolute() {
+        assert!(Position::Absolute(50, 50).is_below(&Position::Absolute(10, 10)));
+        assert!(Position::Absolute(50, 50).is_below(&Position::RowRelative(10)));
+
+        assert!(!Position::Absolute(0, 0).is_below(&Position::Absolute(1, 1)));
+        assert!(!Position::Absolute(0, 0).is_below(&Position::RowRelative(1)));
+        assert!(!Position::Absolute(50, 50).is_below(&Position::ColumnRelative(0)));
+    }
+
+    #[test]
+    fn is_below_column_relative() {
+        assert!(!Position::ColumnRelative(50).is_below(&Position::Absolute(0, 0)));
+        assert!(!Position::ColumnRelative(50).is_below(&Position::ColumnRelative(0)));
+        assert!(!Position::ColumnRelative(50).is_below(&Position::RowRelative(0)));
+    }
+
+    #[test]
+    fn is_below_row_relative() {
+        assert!(Position::RowRelative(50).is_below(&Position::Absolute(10, 10)));
+        assert!(Position::RowRelative(50).is_below(&Position::RowRelative(10)));
+
+        assert!(!Position::RowRelative(50).is_below(&Position::Absolute(100, 100)));
+        assert!(!Position::RowRelative(0).is_below(&Position::RowRelative(10)));
+        assert!(!Position::RowRelative(50).is_below(&Position::ColumnRelative(0)));
+    }
+
+    #[test]
+    fn is_left_of_absolute() {
+        assert!(Position::Absolute(50, 50).is_left_of(&Position::Absolute(100, 100)));
+        assert!(Position::Absolute(50, 50).is_left_of(&Position::ColumnRelative(100)));
+
+        assert!(!Position::Absolute(10, 10).is_left_of(&Position::Absolute(1, 1)));
+        assert!(!Position::Absolute(10, 10).is_left_of(&Position::RowRelative(1)));
+        assert!(!Position::Absolute(50, 50).is_left_of(&Position::ColumnRelative(0)));
+    }
+
+    #[test]
+    fn is_left_of_column_relative() {
+        assert!(Position::ColumnRelative(5).is_left_of(&Position::Absolute(10, 10)));
+        assert!(Position::ColumnRelative(5).is_left_of(&Position::ColumnRelative(10)));
+
+        assert!(!Position::ColumnRelative(50).is_left_of(&Position::Absolute(10, 10)));
+        assert!(!Position::ColumnRelative(50).is_left_of(&Position::RowRelative(10)));
+        assert!(!Position::ColumnRelative(50).is_left_of(&Position::ColumnRelative(0)));
+    }
+
+    #[test]
+    fn is_left_of_row_relative() {
+        assert!(!Position::RowRelative(0).is_left_of(&Position::Absolute(0, 0)));
+        assert!(!Position::RowRelative(0).is_left_of(&Position::ColumnRelative(0)));
+        assert!(!Position::RowRelative(0).is_left_of(&Position::RowRelative(0)));
+    }
+
+    #[test]
+    fn is_right_of_absolute() {
+        assert!(Position::Absolute(50, 50).is_right_of(&Position::Absolute(10, 10)));
+        assert!(Position::Absolute(50, 50).is_right_of(&Position::ColumnRelative(10)));
+
+        assert!(!Position::Absolute(0, 0).is_right_of(&Position::Absolute(1, 1)));
+        assert!(!Position::Absolute(0, 0).is_right_of(&Position::RowRelative(1)));
+        assert!(!Position::Absolute(0, 0).is_right_of(&Position::ColumnRelative(10)));
+    }
+
+    #[test]
+    fn is_right_of_column_relative() {
+        assert!(Position::ColumnRelative(50).is_right_of(&Position::Absolute(10, 10)));
+        assert!(Position::ColumnRelative(50).is_right_of(&Position::ColumnRelative(10)));
+
+        assert!(!Position::ColumnRelative(5).is_right_of(&Position::Absolute(10, 10)));
+        assert!(!Position::ColumnRelative(5).is_right_of(&Position::RowRelative(10)));
+        assert!(!Position::ColumnRelative(0).is_right_of(&Position::ColumnRelative(10)));
+    }
+
+    #[test]
+    fn is_right_of_row_relative() {
+        assert!(!Position::RowRelative(0).is_right_of(&Position::Absolute(0, 0)));
+        assert!(!Position::RowRelative(0).is_right_of(&Position::ColumnRelative(0)));
+        assert!(!Position::RowRelative(0).is_right_of(&Position::RowRelative(0)));
     }
 
     #[test]

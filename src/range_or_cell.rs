@@ -25,6 +25,7 @@ pub enum RangeOrCell {
 }
 
 impl RangeOrCell {
+    /// Return just the column/x component of this `RangeOrCell`.
     pub fn column(&self) -> Option<Self> {
         match self {
             Self::Range { from, to } => 
@@ -34,6 +35,39 @@ impl RangeOrCell {
         }
     }
 
+    /// Is `other` completely contained within `self`?  If `self` is a range then `other` must be
+    /// completely contained within it, otherwise if `self` is an absolute cell position, `other`
+    /// must be the same position.
+    pub fn contains(&self, other: &Self) -> bool {
+        match self {
+            Self::Range { from, to } => {
+                match other {
+                    Self::Range { from: other_from, to: other_to } => {
+                        (from.is_left_of(other_from) && from.is_above(other_from)
+                            && to.is_right_of(other_to) && to.is_below(other_to))
+                            ||
+                            (to.is_left_of(other_to) && to.is_above(other_to)
+                             && from.is_right_of(other_from) && from.is_below(other_from))
+                    },
+
+                    Self::Cell(p) =>
+                        from.is_left_of(p) && from.is_above(p) && to.is_below(p) && to.is_right_of(p),
+                }
+            },
+
+            Self::Cell(p) => {
+                match other {
+                    // a cell will never contain a range
+                    Self::Range { .. } => false,
+                    
+                    // a cell could contain another one but we need to delegate to it to find out
+                    Self::Cell(other_p) => p.contains(other_p),
+                }
+            },
+        }
+    }
+
+    /// Return just the row/y component of this `RangeOrCell`.
     pub fn row(&self) -> Option<Self> {
         match self {
             Self::Range { from, to } =>
@@ -169,6 +203,26 @@ mod tests {
     fn column_some() {
         assert_eq!(Some(RangeOrCell::Cell(Position::ColumnRelative(5))),
                    RangeOrCell::Cell(Position::Absolute(5, 5)).column());
+    }
+
+    #[test]
+    fn contains_range() {
+        assert!(RangeOrCell::Range {
+            from: Position::Absolute(0, 0),
+            to: Position::Absolute(10, 10),
+        }.contains(&RangeOrCell::Cell(Position::Absolute(5, 5))));
+    }
+
+    #[test]
+    fn contains_cell() {
+        assert!(RangeOrCell::Cell(Position::ColumnRelative(0))
+                .contains(&RangeOrCell::Cell(Position::Absolute(0, 0))));
+
+        assert!(!RangeOrCell::Cell(Position::Absolute(0, 0))
+                .contains(&RangeOrCell::Range {
+                    from: Position::Absolute(0, 0),
+                    to: Position::Absolute(10, 10),
+                }));
     }
 
     #[test]
