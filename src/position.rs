@@ -3,7 +3,7 @@
 use serde::{Serialize, Deserialize};
 use std::fmt;
 use std::str;
-use crate::{Error, Result};
+use crate::{A1, Error, RangeOrCell, Result};
 
 static ALPHA: [char; 26] = [
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 
@@ -269,6 +269,27 @@ impl str::FromStr for Position {
         }
     }
 }
+
+/// We allow converting from a more specific type (Position) to a more general one (RangeOrCell)
+/// but it can't happen the other way around, so therefore we need to implement `Into` rather than
+/// `From`
+#[allow(clippy::from_over_into)]
+impl Into<RangeOrCell> for Position {
+    fn into(self) -> RangeOrCell {
+        RangeOrCell::Cell(self)
+    }
+}
+
+/// We allow converting from a more specific type (Position) to a more general one (A1) but it 
+/// can't happen the other way around, so therefore we need to implement `Into` rather than
+/// `From`
+#[allow(clippy::from_over_into)]
+impl Into<A1> for Position {
+    fn into(self) -> A1 {
+        A1 { sheet_name: None, reference: self.into() }
+    }
+}
+
 
 impl fmt::Display for Position {
     /// Converts a cell position to a String. The basic idea with A1 notation is that the row is

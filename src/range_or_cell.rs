@@ -5,8 +5,7 @@
 use serde::{Serialize, Deserialize};
 use std::fmt;
 use std::str;
-
-use crate::{Error, Result};
+use crate::{A1, Error, Result};
 use super::position::Position;
 
 #[derive(Copy, Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -23,32 +22,6 @@ pub enum RangeOrCell {
 
     /// Just a single position
     Cell(Position),
-}
-
-impl fmt::Display for RangeOrCell {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Self::Range { from, to } =>
-                write!(f, "{}:{}", from.display_for_range(), to.display_for_range()),
-            Self::Cell(p) =>
-                write!(f, "{p}"),
-        }
-    }
-}
-
-impl str::FromStr for RangeOrCell {
-    type Err = Error;
-
-    fn from_str(a1: &str) -> Result<Self> {
-        if let Some((l, r)) = a1.split_once(':') {
-            Ok(RangeOrCell::Range {
-                from: Position::from_str(l)?,
-                to: Position::from_str(r)?,
-            })
-        } else {
-            Ok(RangeOrCell::Cell(Position::from_str(a1)?))
-        }
-    }
 }
 
 impl RangeOrCell {
@@ -136,6 +109,42 @@ impl RangeOrCell {
         }
 
         *self
+    }
+}
+
+impl fmt::Display for RangeOrCell {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::Range { from, to } =>
+                write!(f, "{}:{}", from.display_for_range(), to.display_for_range()),
+            Self::Cell(p) =>
+                write!(f, "{p}"),
+        }
+    }
+}
+
+impl str::FromStr for RangeOrCell {
+    type Err = Error;
+
+    fn from_str(a1: &str) -> Result<Self> {
+        if let Some((l, r)) = a1.split_once(':') {
+            Ok(RangeOrCell::Range {
+                from: Position::from_str(l)?,
+                to: Position::from_str(r)?,
+            })
+        } else {
+            Ok(RangeOrCell::Cell(Position::from_str(a1)?))
+        }
+    }
+}
+
+/// We allow converting from a more specific type (RangeOrCell) to a more general one (A1) but 
+/// it can't happen the other way around, so therefore we need to implement `Into` rather than
+/// `From`
+#[allow(clippy::from_over_into)]
+impl Into<A1> for RangeOrCell {
+    fn into(self) -> A1 {
+        A1 { sheet_name: None, reference: self }
     }
 }
 
