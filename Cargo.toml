@@ -7,7 +7,7 @@ keywords = ["a1", "notation", "spreadsheet", "excel", "csv", "column", "row", "r
 license = "MIT"
 name = "a1_notation"
 repository = "https://github.com/patrickomatic/a1_notation"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
