@@ -130,23 +130,33 @@
 use std::str::FromStr;
 
 mod a1;
-mod a1_builder;
+mod address;
+mod column;
 mod error;
-mod position;
 mod range_or_cell;
+mod row;
 
 pub use a1::A1;
-pub use a1_builder::A1Builder;
+pub use address::Address;
+pub use column::Column;
 pub use error::Error;
-pub use position::Position;
 pub use range_or_cell::RangeOrCell;
+pub use row::Row;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-pub fn cell(x: usize, y: usize) -> A1 {
+pub type Index = usize;
+
+pub(crate) static ALPHA: [char; 26] = [
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 
+    'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 
+    'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+];
+
+pub fn cell(x: Index, y: Index) -> A1 {
     A1 {
         sheet_name: None,
-        reference: RangeOrCell::Cell(Position::Absolute(x, y)),
+        reference: RangeOrCell::Cell(Address::new(x, y)),
     }
 }
 
@@ -154,23 +164,32 @@ pub fn new(s: &str) -> Result<A1> {
     A1::from_str(s)
 }
 
-pub fn range(from: Position, to: Position) -> A1 {
+pub fn range(from: Address, to: Address) -> A1 {
     A1 {
         sheet_name: None,
-        reference: RangeOrCell::Range { from, to },
+        reference: RangeOrCell::Range {
+            from,
+            to,
+        },
     }
 }
 
-pub fn column(x: usize) -> A1 {
+pub fn column(x: Index) -> A1 {
     A1 {
         sheet_name: None,
-        reference: RangeOrCell::Cell(Position::ColumnRelative(x)),
+        reference: RangeOrCell::ColumnRange {
+            from: Column::new(x),
+            to: Column::new(x),
+        }
     }
 }
 
-pub fn row(y: usize) -> A1 {
+pub fn row(y: Index) -> A1 {
     A1 {
         sheet_name: None,
-        reference: RangeOrCell::Cell(Position::RowRelative(y)),
+        reference: RangeOrCell::RowRange {
+            from: Row::new(y),
+            to: Row::new(y),
+        }
     }
 }
