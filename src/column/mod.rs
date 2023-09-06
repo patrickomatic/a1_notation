@@ -1,6 +1,5 @@
 //! # Column
 use crate::{ALPHA, Error, Index};
-use serde::{Serialize, Deserialize};
 use std::cmp;
 
 mod as_ref;
@@ -12,7 +11,7 @@ mod ord;
 mod partial_eq;
 mod partial_ord;
 
-#[derive(Copy, Clone, Debug, Deserialize, Eq, Serialize)]
+#[derive(Copy, Clone, Debug, serde::Deserialize, Eq, serde::Serialize)]
 pub struct Column {
     pub absolute: bool,
     pub x: Index,

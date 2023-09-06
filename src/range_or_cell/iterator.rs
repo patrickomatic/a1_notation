@@ -11,7 +11,7 @@ pub enum VerticalDirection { Down, Up }
 /// Each `RangeOrCell` requires a different strategy of iteration, so the underlying iterators
 /// reflect that by having an enum variant for each corresponding iterator.
 #[derive(Debug, Clone)]
-pub enum RangeOrCellIter<'a> {
+pub enum RangeOrCellIterator<'a> {
     /// Just stores and emits a single `Address`
     Cell {
         address: Option<Address>,
@@ -27,7 +27,7 @@ pub enum RangeOrCellIter<'a> {
     /// For each of the non-contiguous regions, call their iterator function until it's empty.
     /// Basically act as an aggregation of iterators.
     NonContiguous {
-        iter: Option<Box<RangeOrCellIter<'a>>>,
+        iter: Option<Box<RangeOrCellIterator<'a>>>,
         range_or_cells: &'a [Box<RangeOrCell>],
         i: usize,
     },
@@ -66,20 +66,20 @@ fn vertical_direction<R: AsRef<Row>>(a: R, b: R) -> VerticalDirection {
 }
 
 impl RangeOrCell {
-    pub fn iter(&self) -> RangeOrCellIter {
+    pub fn iter(&self) -> RangeOrCellIterator {
         match self {
             RangeOrCell::Cell(a) =>
-                RangeOrCellIter::Cell { address: Some(*a) },
+                RangeOrCellIterator::Cell { address: Some(*a) },
 
             RangeOrCell::ColumnRange { from, to } =>
-                RangeOrCellIter::ColumnRange {
+                RangeOrCellIterator::ColumnRange {
                     current: Some(*from),
                     horizontal_direction: horizontal_direction(from, to),
                     end: *to,
                 },
 
             RangeOrCell::NonContiguous(range_or_cells) => {
-                RangeOrCellIter::NonContiguous { 
+                RangeOrCellIterator::NonContiguous { 
                     iter: None,
                     range_or_cells: &range_or_cells[..],
                     i: 0,
@@ -87,7 +87,7 @@ impl RangeOrCell {
             },
 
             RangeOrCell::Range { from, to } =>
-                RangeOrCellIter::Range {
+                RangeOrCellIterator::Range {
                     current: Some(*from),
                     end: *to,
                     horizontal_direction: horizontal_direction(from, to),
@@ -96,7 +96,7 @@ impl RangeOrCell {
                 },
 
             RangeOrCell::RowRange { from, to } =>
-                RangeOrCellIter::RowRange {
+                RangeOrCellIterator::RowRange {
                     current: Some(*from),
                     end: *to,
                     vertical_direction: vertical_direction(from, to),
@@ -105,7 +105,7 @@ impl RangeOrCell {
     }
 }
 
-impl iter::Iterator for RangeOrCellIter<'_> {
+impl iter::Iterator for RangeOrCellIterator<'_> {
     type Item = RangeOrCell;
     
     fn next(&mut self) -> Option<Self::Item> {

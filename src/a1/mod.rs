@@ -14,12 +14,14 @@
 //! * [Google Sheets API Overview](https://developers.google.com/sheets/api/guides/concepts)
 //! * [Refer to Cells and Ranges by Using A1 Notation](https://learn.microsoft.com/en-us/office/vba/excel/concepts/cells-and-ranges/refer-to-cells-and-ranges-by-using-a1-notation)
 //!
-use serde::{Serialize, Deserialize};
-use std::fmt;
+use crate::RangeOrCell;
 use std::str;
-use crate::{Error, RangeOrCell, Result};
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+mod display;
+mod from_str;
+mod iterator;
+
+#[derive(Clone, Debug, serde::Deserialize, PartialEq, serde::Serialize)]
 pub struct A1 {
     pub sheet_name: Option<String>,
     pub reference: RangeOrCell,
@@ -31,11 +33,6 @@ impl A1 {
     pub fn contains(&self, other: &Self) -> bool {
         self.sheet_name == other.sheet_name
             && self.reference.contains(&other.reference)
-    }
-
-    #[allow(dead_code)]
-    pub fn iter(&self) -> crate::range_or_cell::iterator::RangeOrCellIter {
-        self.reference.iter()
     }
 
     /// Returns a new `A1` shifted downwards by `rows` rows.
@@ -79,45 +76,11 @@ impl A1 {
         Self { sheet_name: None, ..self }
     }
 
-    fn parse_sheet_name(a1: &str) -> Result<(Option<String>, &str)> {
-        if let Some((sheet_name, rest)) = a1.split_once('!') {
-            Ok((Some(sheet_name.to_string()), rest))
-        } else {
-            Ok((None, a1))
-        }
-    }
-}
-
-impl str::FromStr for A1 {
-    type Err = Error;
-
-    // TODO: 
-    //
-    // * handle commas? it might make it annoying to use this lib if the common cases is
-    // 	 assuming a vector of ranges
-    fn from_str(a1: &str) -> Result<Self> {
-        let (sheet_name, rest) = Self::parse_sheet_name(a1)?;
-        let reference = RangeOrCell::from_str(rest)?;
-
-        Ok(A1 { sheet_name, reference })
-    }
-}
-
-impl fmt::Display for A1 {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let r = &self.reference;
-        if let Some(sheet_name) = &self.sheet_name {
-            write!(f, "{sheet_name}!{r}")
-        } else {
-            write!(f, "{r}")
-        }
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::*;
-    use std::str::FromStr;
 
     #[test]
     fn contains_different_name() {
@@ -145,56 +108,6 @@ mod tests {
         };
 
         assert!(a1_a.contains(&a1_b));
-    }
-
-    #[test]
-    fn display() {
-        let a1 = A1 {
-            sheet_name: Some("Test1".to_string()),
-            reference: RangeOrCell::Cell((1, 1).into()),
-        };
-
-        assert_eq!("Test1!B2", a1.to_string());
-    }
-
-    #[test]
-    fn display_without_sheet_name() {
-        let a1 = A1 {
-            sheet_name: None,
-            reference: RangeOrCell::Cell((0, 0).into()),
-        };
-
-        assert_eq!("A1", a1.to_string());
-    }
-
-    #[test]
-    fn display_range() {
-        let a1 = A1 {
-            sheet_name: None,
-            reference: RangeOrCell::ColumnRange { from: 1.into(), to: 5.into() },
-        };
-
-        assert_eq!("B:F", a1.to_string());
-    }
-
-    #[test]
-    fn from_str() {
-        let a1 = A1 {
-            sheet_name: None,
-            reference: RangeOrCell::Cell((0, 0).into()),
-        };
-
-        assert_eq!(a1, A1::from_str("A1").unwrap());
-    }
-
-    #[test]
-    fn from_str_sheet_name() {
-        let a1 = A1 {
-            sheet_name: Some("Foo".to_string()),
-            reference: RangeOrCell::Cell((0, 0).into()),
-        };
-
-        assert_eq!(a1, A1::from_str("Foo!A1").unwrap());
     }
 
     #[test]

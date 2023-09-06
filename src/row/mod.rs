@@ -1,6 +1,5 @@
 //! # Row
 use crate::Index;
-use serde::{Serialize, Deserialize};
 use std::cmp;
 
 mod as_ref;
@@ -18,7 +17,7 @@ impl PartialEq for Row {
     }
 }
 
-#[derive(Copy, Clone, Debug, Deserialize, Eq, Serialize)]
+#[derive(Copy, Clone, Debug, serde::Deserialize, Eq, serde::Serialize)]
 pub struct Row {
     /// If the row was was specified with a `$`.
     pub absolute: bool,
