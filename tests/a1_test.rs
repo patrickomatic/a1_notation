@@ -1,5 +1,6 @@
-use std::str::FromStr;
+//! Tests that parsing from and back to a string yields the same results
 use a1_notation::A1;
+use std::str::FromStr;
 
 #[test]
 fn test_a1_to_and_from() {
@@ -13,18 +14,12 @@ fn test_a1_to_and_from() {
 }
 
 #[test]
-fn test_a1_builder() {
-    assert!(A1::builder()
-            .x(5)
-            .y(10)
-            .sheet_name("foo")
-            .build()
-            .is_ok());
+fn test_a1_to_and_from_absolute() {
+    assert_eq!(
+        "$A$1",
+        A1::from_str("$A$1").unwrap().to_string());
 
-    assert!(A1::builder()
-            .range()
-            .from(A1::builder().x(5).build().unwrap())
-            .to(A1::builder().x(10).build().unwrap())
-            .build()
-            .is_ok());
+    assert_eq!(
+        "Foo!$A:$C",
+        A1::from_str("Foo!$A:$C").unwrap().to_string());
 }

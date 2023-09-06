@@ -3,110 +3,161 @@
 
 # a1_notation
 
-A Rust crate for manipulating and parsing to and from A1 notation.  A1 notation is what you 
-typically see in spreadsheets where the first cell (at `(0, 0)`) is referred to as cell `A1` where
-`A` represents the first column (`0`) and `1` represents the first row.
+A library for parsing to and from A1 spreadsheet notation. A1 notation uses letters A-Z for
+columns and a one-based number for the row.  So for example at position `(0, 0)` of a spreadsheet
+(the top left corner) is "A1".  `(1, 1)` is "B2", `(1, 0)` is "B1", etc.  
 
-You can parse an A1-notation value using the `FromStr` trait or the `new` function:
+## Instantiating `A1`s
+
+The most common need is to parse a string:
 
 ```rust
-let b5 = a1_notation::new("B5").unwrap();
+let a1 = A1::from_str("A1").unwrap();
+// it parses it into an instance:
+assert_eq!(a1, 
+    A1 {
+        sheet_name: None,
+        reference: RangeOrCell::Cell(Address {
+            column: Column { absolute: false, x: 0 },
+            row: Row { absolute: false, y: 0 },
+        }),
+    });
+// and can display it back:
+assert_eq!(&a1.to_string(), "A1");
 
-assert_eq!(b5.x(), Some(1));
-assert_eq!(b5.y(), Some(4));
+// you can also just call `a1_notation::new`:
+let from_col_a_to_d = a1_notation::new("Foo!A:D").unwrap();
+assert_eq!(from_col_a_to_d,
+    A1 {
+        sheet_name: Some("Foo".to_string()),
+        reference: RangeOrCell::ColumnRange {
+            from: Column { absolute: false, x: 0 },
+            to: Column { absolute: false, x: 3 },
+        },
+    });
+
+assert_eq!(&from_col_a_to_d.to_string(), "Foo!A:D");
 ```
 
-## Creating a new `A1`
-
-There are several functions you can use to create an `A1`:
+If you have zero-based coordinates and want to represent them as A1, there are several `fn`s
+for instantiating:
 
 ```rust
-// from a &str
-let a1 = a1_notation::new("Foo!A1").unwrap();
+// to create a reference to a specific cell:
+assert_eq!(&a1_notation::cell(2, 2).to_string(), "C3");
 
-assert_eq!(A1 { 
-    sheet_name: Some("Foo".to_string()),
-    reference: RangeOrCell::Cell(Position::Absolute(0, 0)),
-}, a1);
-assert_eq!("Foo!A1", a1.to_string());
+// a reference to an entire column
+assert_eq!(&a1_notation::column(5).to_string(), "F:F");
 
-// from an x/y
-let b2 = a1_notation::cell(1, 1);
+// or an entire row
+assert_eq!(&a1_notation::row(5).to_string(), "6:6");
 
-assert_eq!(A1 { 
-    sheet_name: None,
-    reference: RangeOrCell::Cell(Position::Absolute(1, 1)),
-}, b2);
-assert_eq!("B2", b2.to_string());
-
-// a column reference (an `x` but no `y`)
-let col_c = a1_notation::column(2);
-
-assert_eq!(A1 { 
-    sheet_name: None,
-    reference: RangeOrCell::Cell(Position::ColumnRelative(2)),
-}, col_c);
-assert_eq!("C:C", col_c.to_string());
-
-// a row reference (a `y` but no `x`)
-let row_4 = a1_notation::row(3);
-
-assert_eq!("4:4", row_4.to_string());
+// and finally a range between two cells:
+assert_eq!(&a1_notation::range((0, 0), (4, 4)).to_string(), "A1:E5");
 ```
 
-## Manipulating an `A1`
+## Contains
 
-Once you have an `A1`, you can shift/move it around using `shift_up`, `shift_down`,
-`shift_left` and `shift_right`:
+Given all the various combinations or cells, ranges, row ranges, column ranges and
+non-contiguous ranges you can calculate if one reference contains another.
 
 ```rust
+// a column contains any cell in that column:
+let col_a = a1_notation::new("A:A").unwrap();
 let a1 = a1_notation::new("A1").unwrap();
-assert_eq!(a1.shift_down(2).to_string(), "A3");
+assert!(col_a.contains(&a1));
 
+// likewise, a row range contains anything between it:
+let top_5_rows = a1_notation::new("1:5").unwrap();
 let b2 = a1_notation::new("B2").unwrap();
-assert_eq!(b2.shift_down(2).shift_right(3).shift_up(1).to_string(), "E3");
+assert!(top_5_rows.contains(&b2));
+
+// and a range between two points works as you'd expect (it forms a rectangle)
+let c3_to_j20 = a1_notation::new("C3:J20").unwrap();
+let d5 = a1_notation::new("D5").unwrap();
+assert!(c3_to_j20.contains(&d5));
 ```
 
-And explicitly set it's X or Y components or sheet_name:
+## Into/From/AsRef impls
+
+As much as possible it implements `Into`/`From` and `AsRef` to convert between the various
+structs.  Generally you can go from more specific to less specific but not the other way
+around.  You typically should work with `A1` structs but you can also use these traits to work
+with these lower level ones and cast them upwards.
+
 ```rust
-let a1 = a1_notation::new("A1").unwrap();
-assert_eq!("F1", a1.with_x(5).to_string());
+// an address can act as a column or row using AsRef:
+let a1 = Address::new(0, 0);
+assert_eq!(&Column::new(0), a1.as_ref());
+assert_eq!(&Row::new(0), a1.as_ref());
 
-let c3 = a1_notation::new("C3").unwrap();
-assert_eq!("C6", c3.with_y(5).to_string());
+// addresses, columns and rows can `into()` "upwards" to an A1 or RangeOrCell
+let col_b = Column::new(1);
+assert_eq!(
+    RangeOrCell::ColumnRange {
+        from: Column::new(1),
+        to: Column::new(1),
+    },
+    col_b.into());
 
-let in_foo_sheet = a1_notation::new("Foo!B22").unwrap();
-// change the sheet name:
-assert_eq!("Bar!B22".to_string(), in_foo_sheet.clone().with_sheet_name("Bar").to_string());
-// or remove it:
-assert_eq!("B22".to_string(), in_foo_sheet.clone().without_sheet_name().to_string());
+assert_eq!(
+    A1 {
+        sheet_name: None,
+        reference: RangeOrCell::ColumnRange {
+            from: Column::new(1),
+            to: Column::new(1),
+        },
+    },
+    col_b.into());
 ```
 
-## Builder
+## Shifting
 
-You can call the builder to build a more complex reference (with sheet name, range, etc):
+You can move references (and ranges) around:
 
 ```rust
-let a1_absolute = A1::builder()
-                    .xy(0, 0)
-                    .sheet_name("Important_stuff")
-                    .build()
-                    .unwrap();
-// Cell A1
-assert_eq!(a1_absolute.to_string(), "Important_stuff!A1");
+// A1 -> D1 -> D3 -> C3
+assert_eq!(
+    &a1_notation::cell(0, 0)
+        .shift_right(3)
+        .shift_down(2)
+        .shift_left(1)
+        .to_string(),
+    "C3");
+```
 
-let a1_relative = A1::builder().x(0).build().unwrap();
-// Column A
-assert_eq!(a1_relative.to_string(), "A:A");
+## Iterators
 
-let a1_range = A1::builder()
-                .range()
-                .from(A1::builder().x(0).build().unwrap())
-                .to(A1::builder().x(3).build().unwrap())
-                .build()
-                .unwrap();
-// Range A:D
-assert_eq!(a1_range.to_string(), "A:D");
+You can iterate through the various types of ranges.
+
+```rust
+// a cell just emits itself (once)
+assert_eq!(
+    a1_notation::cell(0, 0)
+        .iter().map(|r| r.to_string()).collect::<Vec<_>>(),
+    vec!["A1"]);
+
+// a column range iterates column-wise
+assert_eq!(
+    a1_notation::new("D:G").unwrap()
+        .iter().map(|r| r.to_string()).collect::<Vec<_>>(),
+    vec!["D:D", "E:E", "F:F", "G:G"]);
+
+// and a row range goes row-wise
+assert_eq!(
+    a1_notation::new("3:6").unwrap()
+        .iter().map(|r| r.to_string()).collect::<Vec<_>>(),
+    vec!["3:3", "4:4", "5:5", "6:6"]);
+
+// a grid-based range goes row-by-row
+assert_eq!(
+    a1_notation::new("A1:C3").unwrap()
+        .iter().map(|r| r.to_string()).collect::<Vec<_>>(),
+    vec![
+        "A1", "B1", "C1",
+        "A2", "B2", "C2",
+        "A3", "B3", "C3",
+    ]);
 ```
 
 ### A1 Reference Examples
@@ -124,6 +175,7 @@ Here is a table illustrating A1 references:
 | `"1:5"`         | Rows 1 through 5          |
 | `"1:1,3:3,8:8"` | Rows 1, 3, and 8          |
 | `"A:A,C:C,F:F"` | Columns A, C, and F       |
+
 
 For more info take a look at the [package on crates.io](https://crates.io/crates/a1_notation/) and it's [Rust docs](https://docs.rs/a1_notation/latest/a1_notation/).
 
