@@ -237,21 +237,21 @@ pub fn range<A: Into<Address>>(from: A, to: A) -> A1 {
 }
 
 /// An entire column
-pub fn column<C: Into<Column> + Copy>(x: C) -> A1 {
+pub fn column<C: Into<Column>>(x: C) -> A1 {
     A1 { sheet_name: None, reference: RangeOrCell::column(x) }
 }
 
 /// A range between two columns
-pub fn column_range<R: Into<Column> + Copy>(xa: R, xb: R) -> A1 {
+pub fn column_range<R: Into<Column>>(xa: R, xb: R) -> A1 {
     A1 { sheet_name: None, reference: RangeOrCell::column_range(xa, xb) }
 }
 
 /// An entire row
-pub fn row<R: Into<Row> + Copy>(y: R) -> A1 {
+pub fn row<R: Into<Row>>(y: R) -> A1 {
     A1 { sheet_name: None, reference: RangeOrCell::row(y) }
 }
 
 /// A range between two rows
-pub fn row_range<R: Into<Row> + Copy>(ya: R, yb: R) -> A1 {
+pub fn row_range<R: Into<Row>>(ya: R, yb: R) -> A1 {
     A1 { sheet_name: None, reference: RangeOrCell::row_range(ya, yb) }
 }

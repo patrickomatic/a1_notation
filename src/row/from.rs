@@ -5,4 +5,3 @@ impl From<Index> for Row {
         Row::new(index)
     }
 }
-
