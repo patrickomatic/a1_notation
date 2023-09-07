@@ -8,7 +8,7 @@ use serde::{Serialize, Deserialize};
 mod display;
 mod from_str;
 mod into;
-pub mod iterator;
+pub(crate) mod iterator;
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum RangeOrCell {
