@@ -8,6 +8,7 @@ use crate::{Column, Index, Row};
 
 mod as_ref;
 mod display;
+mod from;
 mod from_str;
 mod into;
 

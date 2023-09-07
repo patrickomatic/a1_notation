@@ -1,6 +1,7 @@
 use crate::{A1, Error, RangeOrCell, Result};
 use std::str;
 
+// TODO: need more complex handling for `"'My Finances'!A1:B3"`
 fn parse_sheet_name(a1: &str) -> Result<(Option<String>, &str)> {
     if let Some((sheet_name, rest)) = a1.split_once('!') {
         Ok((Some(sheet_name.to_string()), rest))

@@ -48,13 +48,30 @@ pub enum RangeOrCell {
 
 impl RangeOrCell {
     /// Create a `RangeOrCell::ColumnRange` at the given `x` index
-    pub fn column(x: Index) -> Self {
-        Column::new(x).into()
+    pub fn column<C: Into<Column>>(x: C) -> Self {
+        // Column -> RangeOrCell::ColumnRange
+        x.into().into()
+    }
+
+    /// Create a `RangeOrCell::ColumnRange` between two columns.
+    pub fn column_range<C: Into<Column> + Copy>(xa: C, xb: C) -> Self {
+        Self::ColumnRange { from: xa.into(), to: xb.into() }
+    }
+
+    /// Create a `RangeOrCell::Range` between two addresses.
+    pub fn range<A: Into<Address> + Copy>(aa: A, ab: A) -> Self {
+        Self::Range { from: aa.into(), to: ab.into() }
     }
 
     /// Create a `RangeOrCell::RowRange` at the given `y` index
-    pub fn row(y: Index) -> Self {
-        Row::new(y).into()
+    pub fn row<R: Into<Row> + Copy>(y: R) -> Self {
+        // Row -> RangeOrCell::RowRange
+        y.into().into()
+    }
+
+    /// Create a `RangeOrCell::RowRange` between two rows.
+    pub fn row_range<R: Into<Row> + Copy>(ya: R, yb: R) -> Self {
+        Self::RowRange { from: ya.into(), to: yb.into() }
     }
 
     /// This function has a lot going on because we need to handle every combination of every
