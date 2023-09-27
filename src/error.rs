@@ -1,4 +1,5 @@
 //! # Error
+use std::fmt;
 
 #[derive(Clone, Debug)]
 pub enum Error {
@@ -12,4 +13,12 @@ pub enum Error {
         bad_input: String,
         message: String,
     },
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::A1ParseError { message, .. } => write!(f, "{message}")
+        }
+    }
 }
