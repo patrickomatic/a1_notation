@@ -1,10 +1,10 @@
 //! # Address
-//! 
+//!
 //! Represents a particular cell.  You treat an `Address` as any other type using the relevant
 //! `AsRef` or `Into` implementations.
 //!
-use serde::{Serialize, Deserialize};
 use crate::{Column, Index, Row};
+use serde::{Deserialize, Serialize};
 
 mod as_ref;
 mod display;
@@ -29,44 +29,60 @@ impl Address {
     /// Given that `a` and `b` form a finite range, is `self` within it? i.e. is_between `a` and
     /// `b`.
     pub fn is_between(&self, a: &Self, b: &Self) -> bool {
-        // we "score" them by adding their X/Y coords so we can figure out which ones are closer to
-        // origin and which is farther away.  The higher the score the farther it is from origin. 
-        let a_score = a.origin_distance();
-        let b_score = b.origin_distance();
+        let a_dist = a.origin_distance();
+        let b_dist = b.origin_distance();
 
-        // the most top-leftest has the lowest score/closest to origin
-        let top_left = if a_score < b_score { a } else { b };
-        // the other one is bottom-right
-        let bottom_right = if a_score < b_score { b } else { a };
+        let top_left = if a_dist < b_dist { a } else { b };
+        let bottom_right = if a_dist < b_dist { b } else { a };
 
-        self.column >= top_left.column && self.row >= top_left.row
-            && self.column <= bottom_right.column && self.row <= bottom_right.row
+        self.column >= top_left.column
+            && self.row >= top_left.row
+            && self.column <= bottom_right.column
+            && self.row <= bottom_right.row
     }
 
     pub fn shift_down(&self, rows: Index) -> Self {
-        Self { row: self.row.shift_down(rows), ..*self }
+        Self {
+            row: self.row.shift_down(rows),
+            ..*self
+        }
     }
 
     pub fn shift_left(&self, columns: Index) -> Self {
-        Self { column: self.column.shift_left(columns), ..*self }
+        Self {
+            column: self.column.shift_left(columns),
+            ..*self
+        }
     }
 
     pub fn shift_right(&self, columns: Index) -> Self {
-        Self { column: self.column.shift_right(columns), ..*self }
+        Self {
+            column: self.column.shift_right(columns),
+            ..*self
+        }
     }
 
     pub fn shift_up(&self, rows: Index) -> Self {
-        Self { row: self.row.shift_up(rows), ..*self }
+        Self {
+            row: self.row.shift_up(rows),
+            ..*self
+        }
     }
 
     /// Set the `x` component with the following (hopefully sensical rules):
     pub fn with_x(&self, x: Index) -> Self {
-        Self { column: x.into(), ..*self }
+        Self {
+            column: x.into(),
+            ..*self
+        }
     }
 
     /// Set the `y` component with the following
     pub fn with_y(&self, y: Index) -> Self {
-        Self { row: y.into(), ..*self }
+        Self {
+            row: y.into(),
+            ..*self
+        }
     }
 
     pub(crate) fn origin_distance(&self) -> usize {
