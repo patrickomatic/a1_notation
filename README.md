@@ -1,5 +1,6 @@
-![github workflow](https://github.com/patrickomatic/a1_notation/actions/workflows/rust.yml/badge.svg)
-![crates.io](https://img.shields.io/crates/v/a1_notation.svg)
+[![crates.io](https://img.shields.io/crates/v/a1_notation.svg)](https://crates.io/crates/a1_notation)
+[![github workflow](https://github.com/patrickomatic/a1_notation/actions/workflows/rust.yml/badge.svg)](https://github.com/patrickomatic/a1_notation/actions)
+[![dependency status](https://deps.rs/repo/github/patrickomatic/a1_notation/status.svg)](https://deps.rs/repo/github/patrickomatic/a1_notation)
 
 # a1_notation
 
