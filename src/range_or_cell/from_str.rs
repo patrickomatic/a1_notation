@@ -3,14 +3,16 @@ use std::str::FromStr;
 
 fn parse_str(a1: &str) -> Result<RangeOrCell> {
     if let Some((l, r)) = a1.split_once(':') {
-        if l.chars().all(|c| c == '$' || c.is_ascii_digit()) 
-                && r.chars().all(|c| c == '$' || c.is_ascii_digit()) {
+        if l.chars().all(|c| c == '$' || c.is_ascii_digit())
+            && r.chars().all(|c| c == '$' || c.is_ascii_digit())
+        {
             Ok(RangeOrCell::RowRange {
                 from: Row::from_str(l)?,
                 to: Row::from_str(r)?,
             })
-        } else if l.chars().all(|c| c == '$' || c.is_ascii_alphabetic()) 
-                && r.chars().all(|c| c == '$' || c.is_ascii_alphabetic()) {
+        } else if l.chars().all(|c| c == '$' || c.is_ascii_alphabetic())
+            && r.chars().all(|c| c == '$' || c.is_ascii_alphabetic())
+        {
             Ok(RangeOrCell::ColumnRange {
                 from: Column::from_str(l)?,
                 to: Column::from_str(r)?,
@@ -59,22 +61,24 @@ mod tests {
     #[test]
     fn from_str_cell() {
         assert_eq!(
-            RangeOrCell::Cell(Address::new(0, 0)), 
-            RangeOrCell::from_str("A1").unwrap());
+            RangeOrCell::Cell(Address::new(0, 0)),
+            RangeOrCell::from_str("A1").unwrap()
+        );
     }
 
     #[test]
     fn from_str_non_contiguous() {
         assert_eq!(
             RangeOrCell::NonContiguous(vec![
-                Box::new(RangeOrCell::Cell(Address::new(0, 0))), 
-                Box::new(RangeOrCell::Cell(Address::new(1, 1))), 
+                Box::new(RangeOrCell::Cell(Address::new(0, 0))),
+                Box::new(RangeOrCell::Cell(Address::new(1, 1))),
                 Box::new(RangeOrCell::Range {
                     from: Address::new(0, 0),
                     to: Address::new(2, 2),
                 }),
             ]),
-            RangeOrCell::from_str("A1,B2,A1:C3").unwrap());
+            RangeOrCell::from_str("A1,B2,A1:C3").unwrap()
+        );
     }
 
     #[test]
@@ -84,7 +88,8 @@ mod tests {
                 from: Address::new(0, 0),
                 to: Address::new(2, 2),
             },
-            RangeOrCell::from_str("A1:C3").unwrap());
+            RangeOrCell::from_str("A1:C3").unwrap()
+        );
     }
 
     #[test]
@@ -94,7 +99,8 @@ mod tests {
                 from: Row::new(0),
                 to: Row::new(5),
             },
-            RangeOrCell::from_str("1:6").unwrap());
+            RangeOrCell::from_str("1:6").unwrap()
+        );
     }
 
     #[test]
@@ -104,6 +110,7 @@ mod tests {
                 from: Column::new(0),
                 to: Column::new(2),
             },
-            RangeOrCell::from_str("A:C").unwrap());
+            RangeOrCell::from_str("A:C").unwrap()
+        );
     }
 }

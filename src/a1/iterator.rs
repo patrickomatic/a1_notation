@@ -1,5 +1,5 @@
-use crate::A1;
 use crate::range_or_cell::iterator::RangeOrCellIterator;
+use crate::A1;
 use std::iter;
 
 pub struct A1Iterator<'a> {
@@ -19,7 +19,7 @@ impl A1 {
 /// A thin wrapper around `RangeOrCellIterator` which also reflects the `sheet_name` of the `A1`.
 impl<'a> iter::Iterator for A1Iterator<'a> {
     type Item = A1;
-    
+
     // TODO: have this move the `sheet_name` around rather than clone()ing it each time
     fn next(&mut self) -> Option<Self::Item> {
         Some(A1 {
@@ -39,7 +39,8 @@ mod tests {
 
         assert_eq!(
             a1.iter().map(|a| a.to_string()).collect::<Vec<_>>(),
-            vec!["A1", "A2", "A3", "A4", "A5"]);
+            vec!["A1", "A2", "A3", "A4", "A5"]
+        );
     }
 
     #[test]
@@ -48,6 +49,7 @@ mod tests {
 
         assert_eq!(
             a1.iter().map(|a| a.to_string()).collect::<Vec<_>>(),
-            vec!["Foo!A1", "Foo!A2", "Foo!A3", "Foo!A4", "Foo!A5"]);
+            vec!["Foo!A1", "Foo!A2", "Foo!A3", "Foo!A4", "Foo!A5"]
+        );
     }
 }

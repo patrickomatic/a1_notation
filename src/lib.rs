@@ -14,7 +14,7 @@
 //!
 //! let a1 = A1::from_str("A1").unwrap();
 //! // it parses it into an instance:
-//! assert_eq!(a1, 
+//! assert_eq!(a1,
 //!     A1 {
 //!         sheet_name: None,
 //!         reference: RangeOrCell::Cell(Address {
@@ -207,9 +207,8 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub type Index = usize;
 
 pub(crate) static ALPHA: [char; 26] = [
-    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 
-    'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 
-    'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
+    'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
 ];
 
 /// Create an `A1` referencing a cell at a given address (x/y)
@@ -238,20 +237,32 @@ pub fn range<A: Into<Address>>(from: A, to: A) -> A1 {
 
 /// An entire column
 pub fn column<C: Into<Column>>(x: C) -> A1 {
-    A1 { sheet_name: None, reference: RangeOrCell::column(x) }
+    A1 {
+        sheet_name: None,
+        reference: RangeOrCell::column(x),
+    }
 }
 
 /// A range between two columns
 pub fn column_range<R: Into<Column>>(xa: R, xb: R) -> A1 {
-    A1 { sheet_name: None, reference: RangeOrCell::column_range(xa, xb) }
+    A1 {
+        sheet_name: None,
+        reference: RangeOrCell::column_range(xa, xb),
+    }
 }
 
 /// An entire row
 pub fn row<R: Into<Row>>(y: R) -> A1 {
-    A1 { sheet_name: None, reference: RangeOrCell::row(y) }
+    A1 {
+        sheet_name: None,
+        reference: RangeOrCell::row(y),
+    }
 }
 
 /// A range between two rows
 pub fn row_range<R: Into<Row>>(ya: R, yb: R) -> A1 {
-    A1 { sheet_name: None, reference: RangeOrCell::row_range(ya, yb) }
+    A1 {
+        sheet_name: None,
+        reference: RangeOrCell::row_range(ya, yb),
+    }
 }

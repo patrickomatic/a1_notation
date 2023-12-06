@@ -95,7 +95,7 @@ mod tests {
         assert!(Row::new(0).contains(Address::new(0, 0)));
         assert!(Row::new(0).contains(Address::new(10, 0)));
     }
-    
+
     #[test]
     fn is_between_true() {
         assert!(Row::new(5).is_between(&Row::new(0), &Row::new(20)));

@@ -1,4 +1,4 @@
-use super::{ALPHA, Column, Error};
+use super::{Column, Error, ALPHA};
 use std::str::FromStr;
 
 impl FromStr for Column {
@@ -19,10 +19,10 @@ impl FromStr for Column {
             if let Some(ch_index) = ALPHA.iter().position(|&c| c == uch) {
                 x = x * 26 + ch_index + 1;
             } else {
-                return Err(Error::A1ParseError { 
-                    bad_input: ch.to_string(), 
+                return Err(Error::A1ParseError {
+                    bad_input: ch.to_string(),
                     message: format!("Invalid character in A1 notation: {s}"),
-                })
+                });
             }
         }
 

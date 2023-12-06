@@ -49,7 +49,7 @@ mod tests {
         assert!(!ay51.column.absolute);
         assert!(ay51.row.absolute);
     }
-    
+
     #[test]
     fn from_str_err() {
         assert!(Address::from_str("").is_err());

@@ -6,4 +6,3 @@ impl From<(Index, Index)> for Address {
         Address::new(column, row)
     }
 }
-

@@ -1,4 +1,4 @@
-use crate::{A1, Error, RangeOrCell, Result};
+use crate::{Error, RangeOrCell, Result, A1};
 use std::str;
 
 // TODO: need more complex handling for `"'My Finances'!A1:B3"`
@@ -17,14 +17,17 @@ impl str::FromStr for A1 {
         let (sheet_name, rest) = parse_sheet_name(a1)?;
         let reference = RangeOrCell::from_str(rest)?;
 
-        Ok(A1 { sheet_name, reference })
+        Ok(A1 {
+            sheet_name,
+            reference,
+        })
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
     use super::*;
+    use std::str::FromStr;
 
     #[test]
     fn from_str() {

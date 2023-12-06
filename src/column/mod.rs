@@ -1,5 +1,5 @@
 //! # Column
-use crate::{ALPHA, Error, Index};
+use crate::{Error, Index, ALPHA};
 use std::cmp;
 
 mod as_ref;
@@ -28,7 +28,7 @@ impl Column {
         self >= from && self <= to
     }
 
-    /// Does `self` contain the given column or address?  Either it's the same column or a point 
+    /// Does `self` contain the given column or address?  Either it's the same column or a point
     /// within the column
     pub fn contains<T: AsRef<Self>>(&self, other: T) -> bool {
         self.x == other.as_ref().x
@@ -77,7 +77,7 @@ mod tests {
         assert!(!Column::new(5).contains(Column::new(50)));
         assert!(!Column::new(5).contains(Address::new(50, 10)));
     }
-    
+
     #[test]
     fn is_between_true() {
         assert!(Column::new(5).is_between(&Column::new(0), &Column::new(20)));

@@ -40,7 +40,10 @@ mod tests {
     fn display_range() {
         let a1 = A1 {
             sheet_name: None,
-            reference: RangeOrCell::ColumnRange { from: 1.into(), to: 5.into() },
+            reference: RangeOrCell::ColumnRange {
+                from: 1.into(),
+                to: 5.into(),
+            },
         };
 
         assert_eq!("B:F", a1.to_string());

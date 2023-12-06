@@ -14,7 +14,10 @@ mod tests {
     #[test]
     fn cmp() {
         assert_eq!(Column::new(20).cmp(&Column::new(20)), cmp::Ordering::Equal);
-        assert_eq!(Column::new(20).cmp(&Column::new(19)), cmp::Ordering::Greater);
+        assert_eq!(
+            Column::new(20).cmp(&Column::new(19)),
+            cmp::Ordering::Greater
+        );
         assert_eq!(Column::new(20).cmp(&Column::new(21)), cmp::Ordering::Less);
     }
 }

@@ -31,51 +31,73 @@ impl A1 {
     /// Is `other` completely contained within `self`?  They also must be in the same sheet
     /// (meaning `self.sheet_name` == `other.sheet_name`).
     pub fn contains(&self, other: &Self) -> bool {
-        self.sheet_name == other.sheet_name
-            && self.reference.contains(&other.reference)
+        self.sheet_name == other.sheet_name && self.reference.contains(&other.reference)
     }
 
     /// Returns a new `A1` shifted downwards by `rows` rows.
     pub fn shift_down(self, rows: usize) -> Self {
-        Self { reference: self.reference.shift_down(rows), ..self }
+        Self {
+            reference: self.reference.shift_down(rows),
+            ..self
+        }
     }
 
     /// Returns a new `A1` shifted left by `columns` columns.
     pub fn shift_left(self, columns: usize) -> Self {
-        Self { reference: self.reference.shift_left(columns), ..self }
+        Self {
+            reference: self.reference.shift_left(columns),
+            ..self
+        }
     }
 
     /// Returns a new `A1` shifted right by `columns` columns.
     pub fn shift_right(self, columns: usize) -> Self {
-        Self { reference: self.reference.shift_right(columns), ..self }
+        Self {
+            reference: self.reference.shift_right(columns),
+            ..self
+        }
     }
 
     /// Returns a new `A1` shifted up by `rows` rows.
     pub fn shift_up(self, rows: usize) -> Self {
-        Self { reference: self.reference.shift_up(rows), ..self }
+        Self {
+            reference: self.reference.shift_up(rows),
+            ..self
+        }
     }
 
     /// Clone into a new `A1` with the given `sheet_name`
     pub fn with_sheet_name(self, sheet_name: &str) -> Self {
-        Self { sheet_name: Some(sheet_name.to_owned()), ..self }
+        Self {
+            sheet_name: Some(sheet_name.to_owned()),
+            ..self
+        }
     }
 
     /// Return a new `A1` with the given X position set.  If the `reference` already has an `x`
     /// component, it will be overwritten in the returned value.
     pub fn with_x(self, x: usize) -> Self {
-        Self { reference: self.reference.with_x(x), ..self }
+        Self {
+            reference: self.reference.with_x(x),
+            ..self
+        }
     }
 
     /// Return a new `A1` with the given Y position set.  If the `reference` already has an `y`
     /// component, it will be overwritten in the returned value.
     pub fn with_y(self, y: usize) -> Self {
-        Self { reference: self.reference.with_y(y), ..self }
+        Self {
+            reference: self.reference.with_y(y),
+            ..self
+        }
     }
 
     pub fn without_sheet_name(self) -> Self {
-        Self { sheet_name: None, ..self }
+        Self {
+            sheet_name: None,
+            ..self
+        }
     }
-
 }
 
 #[cfg(test)]
@@ -159,7 +181,8 @@ mod tests {
 
         assert_eq!(
             Some("foo".to_string()),
-            a1.with_sheet_name("foo").sheet_name);
+            a1.with_sheet_name("foo").sheet_name
+        );
     }
 
     #[test]

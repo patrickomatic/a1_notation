@@ -1,5 +1,5 @@
-use std::fmt;
 use super::Row;
+use std::fmt;
 
 impl fmt::Display for Row {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -24,7 +24,21 @@ mod tests {
 
     #[test]
     fn display_absolute() {
-        assert_eq!(Row { y: 0, absolute: true }.to_string(), "$1");
-        assert_eq!(Row { y: 10, absolute: true }.to_string(), "$11");
+        assert_eq!(
+            Row {
+                y: 0,
+                absolute: true
+            }
+            .to_string(),
+            "$1"
+        );
+        assert_eq!(
+            Row {
+                y: 10,
+                absolute: true
+            }
+            .to_string(),
+            "$11"
+        );
     }
 }

@@ -5,4 +5,3 @@ impl AsRef<Column> for Column {
         &self
     }
 }
-

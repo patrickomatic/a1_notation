@@ -1,4 +1,4 @@
-use crate::{ALPHA, Column};
+use crate::{Column, ALPHA};
 use std::fmt;
 
 impl fmt::Display for Column {
@@ -14,13 +14,13 @@ impl fmt::Display for Column {
             let next_c = ((c as f64 / 26.0).floor() as isize) - 1;
             if next_c < 0 {
                 break;
-            } 
+            }
 
             c = next_c as usize;
         }
 
         let abs_char = if self.absolute { "$" } else { "" };
-        
+
         write!(f, "{abs_char}{row_part}")
     }
 }
@@ -40,7 +40,21 @@ mod tests {
 
     #[test]
     fn display_absolute() {
-        assert_eq!(Column { absolute: true, x: 0 }.to_string(), "$A");
-        assert_eq!(Column { absolute: true, x: 25 }.to_string(), "$Z");
+        assert_eq!(
+            Column {
+                absolute: true,
+                x: 0
+            }
+            .to_string(),
+            "$A"
+        );
+        assert_eq!(
+            Column {
+                absolute: true,
+                x: 25
+            }
+            .to_string(),
+            "$Z"
+        );
     }
 }

@@ -1,5 +1,5 @@
-use std::cmp;
 use super::Row;
+use std::cmp;
 
 impl Ord for Row {
     fn cmp(&self, other: &Self) -> cmp::Ordering {

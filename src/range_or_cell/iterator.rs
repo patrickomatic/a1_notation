@@ -1,21 +1,25 @@
+use super::RangeOrCell;
 use crate::{Address, Column, Row};
 use std::iter;
-use super::RangeOrCell;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub enum HorizontalDirection { Left, Right }
+pub enum HorizontalDirection {
+    Left,
+    Right,
+}
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub enum VerticalDirection { Down, Up }
+pub enum VerticalDirection {
+    Down,
+    Up,
+}
 
 /// Each `RangeOrCell` requires a different strategy of iteration, so the underlying iterators
 /// reflect that by having an enum variant for each corresponding iterator.
 #[derive(Debug, Clone)]
 pub enum RangeOrCellIterator<'a> {
     /// Just stores and emits a single `Address`
-    Cell {
-        address: Option<Address>,
-    },
+    Cell { address: Option<Address> },
 
     /// Iterates from one column to another, one-by-one.
     ColumnRange {
@@ -68,55 +72,53 @@ fn vertical_direction<R: AsRef<Row>>(a: R, b: R) -> VerticalDirection {
 impl RangeOrCell {
     pub fn iter(&self) -> RangeOrCellIterator {
         match self {
-            RangeOrCell::Cell(a) =>
-                RangeOrCellIterator::Cell { address: Some(*a) },
+            RangeOrCell::Cell(a) => RangeOrCellIterator::Cell { address: Some(*a) },
 
-            RangeOrCell::ColumnRange { from, to } =>
-                RangeOrCellIterator::ColumnRange {
-                    current: Some(*from),
-                    horizontal_direction: horizontal_direction(from, to),
-                    end: *to,
-                },
-
-            RangeOrCell::NonContiguous(range_or_cells) => {
-                RangeOrCellIterator::NonContiguous { 
-                    iter: None,
-                    range_or_cells: &range_or_cells[..],
-                    i: 0,
-                }
+            RangeOrCell::ColumnRange { from, to } => RangeOrCellIterator::ColumnRange {
+                current: Some(*from),
+                horizontal_direction: horizontal_direction(from, to),
+                end: *to,
             },
 
-            RangeOrCell::Range { from, to } =>
-                RangeOrCellIterator::Range {
-                    current: Some(*from),
-                    end: *to,
-                    horizontal_direction: horizontal_direction(from, to),
-                    start: *from,
-                    vertical_direction: vertical_direction(from, to),
-                },
+            RangeOrCell::NonContiguous(range_or_cells) => RangeOrCellIterator::NonContiguous {
+                iter: None,
+                range_or_cells: &range_or_cells[..],
+                i: 0,
+            },
 
-            RangeOrCell::RowRange { from, to } =>
-                RangeOrCellIterator::RowRange {
-                    current: Some(*from),
-                    end: *to,
-                    vertical_direction: vertical_direction(from, to),
-                },
+            RangeOrCell::Range { from, to } => RangeOrCellIterator::Range {
+                current: Some(*from),
+                end: *to,
+                horizontal_direction: horizontal_direction(from, to),
+                start: *from,
+                vertical_direction: vertical_direction(from, to),
+            },
+
+            RangeOrCell::RowRange { from, to } => RangeOrCellIterator::RowRange {
+                current: Some(*from),
+                end: *to,
+                vertical_direction: vertical_direction(from, to),
+            },
         }
     }
 }
 
 impl iter::Iterator for RangeOrCellIterator<'_> {
     type Item = RangeOrCell;
-    
+
     fn next(&mut self) -> Option<Self::Item> {
         match self {
             Self::Cell { ref mut address } => {
                 let a = (*address)?;
                 *address = None;
                 Some(a.into())
-            },
+            }
 
-            Self::ColumnRange { ref mut current, end, horizontal_direction } => {
+            Self::ColumnRange {
+                ref mut current,
+                end,
+                horizontal_direction,
+            } => {
                 let c = (*current)?;
 
                 *current = if c == *end {
@@ -128,16 +130,20 @@ impl iter::Iterator for RangeOrCellIterator<'_> {
                 };
 
                 Some(c.into())
-            },
+            }
 
-            Self::NonContiguous { ref mut i, ref mut iter, range_or_cells } => {
+            Self::NonContiguous {
+                ref mut i,
+                ref mut iter,
+                range_or_cells,
+            } => {
                 // if we have an active iter, just use it until it runs out
                 if let Some(i) = iter {
                     let n = i.next();
                     if n.is_some() {
-                        return n
+                        return n;
                     }
-                } 
+                }
 
                 if let Some(r) = range_or_cells.get(*i) {
                     let mut r_iter = r.iter();
@@ -152,14 +158,20 @@ impl iter::Iterator for RangeOrCellIterator<'_> {
                 } else {
                     None
                 }
-            },
+            }
 
-            Self::Range { ref mut current, horizontal_direction, start, end, vertical_direction } => {
+            Self::Range {
+                ref mut current,
+                horizontal_direction,
+                start,
+                end,
+                vertical_direction,
+            } => {
                 let c = (*current)?;
                 let current_col: &Column = c.as_ref();
 
                 // figure out the next value by traversing left/right row-wise then up/down
-                *current = 
+                *current =
                     // if we're past `end` (depending on which direction) then we're done
                     if c == *end {
                         None
@@ -181,9 +193,13 @@ impl iter::Iterator for RangeOrCellIterator<'_> {
                     };
 
                 Some(c.into())
-            },
+            }
 
-            Self::RowRange { ref mut current, end, vertical_direction } => {
+            Self::RowRange {
+                ref mut current,
+                end,
+                vertical_direction,
+            } => {
                 let c = (*current)?;
 
                 *current = if c == *end {
@@ -195,7 +211,7 @@ impl iter::Iterator for RangeOrCellIterator<'_> {
                 };
 
                 Some(c.into())
-            },
+            }
         }
     }
 }
@@ -217,83 +233,108 @@ mod tests {
 
     #[test]
     fn iter_column_range() {
-        let range = RangeOrCell::ColumnRange { from: 0.into(), to: 5.into() };
+        let range = RangeOrCell::ColumnRange {
+            from: 0.into(),
+            to: 5.into(),
+        };
 
         assert_eq!(
             range_to_strs(range),
-            vec!["A:A", "B:B", "C:C", "D:D", "E:E", "F:F"]);
+            vec!["A:A", "B:B", "C:C", "D:D", "E:E", "F:F"]
+        );
     }
 
     #[test]
     fn iter_column_range_backwards() {
-        let range = RangeOrCell::ColumnRange { from: 5.into(), to: 0.into() };
+        let range = RangeOrCell::ColumnRange {
+            from: 5.into(),
+            to: 0.into(),
+        };
 
         assert_eq!(
             range_to_strs(range),
-            vec!["F:F", "E:E", "D:D", "C:C", "B:B", "A:A"]);
+            vec!["F:F", "E:E", "D:D", "C:C", "B:B", "A:A"]
+        );
     }
 
     #[test]
     fn iter_non_contiguous() {
-        let range = RangeOrCell::NonContiguous(
-            vec![
-                Box::new(RangeOrCell::Cell((0, 0).into())),
-                Box::new(RangeOrCell::ColumnRange { from: 1.into(), to: 2.into() }),
-                Box::new(RangeOrCell::Cell((2, 2).into())),
-            ]);
+        let range = RangeOrCell::NonContiguous(vec![
+            Box::new(RangeOrCell::Cell((0, 0).into())),
+            Box::new(RangeOrCell::ColumnRange {
+                from: 1.into(),
+                to: 2.into(),
+            }),
+            Box::new(RangeOrCell::Cell((2, 2).into())),
+        ]);
 
         assert_eq!(range_to_strs(range), vec!["A1", "B:B", "C:C", "C3"]);
     }
 
     #[test]
     fn iter_range() {
-        let range = RangeOrCell::Range { from: (0, 0).into(), to: (3, 3).into() };
+        let range = RangeOrCell::Range {
+            from: (0, 0).into(),
+            to: (3, 3).into(),
+        };
 
         assert_eq!(
             range_to_strs(range),
             vec![
-                "A1", "B1", "C1", "D1",
-                "A2", "B2", "C2", "D2",
-                "A3", "B3", "C3", "D3",
-                "A4", "B4", "C4", "D4",
-            ]);
+                "A1", "B1", "C1", "D1", "A2", "B2", "C2", "D2", "A3", "B3", "C3", "D3", "A4", "B4",
+                "C4", "D4",
+            ]
+        );
     }
 
     #[test]
     fn iter_range_backwards() {
-        let range = RangeOrCell::Range { from: (3, 3).into(), to: (0, 0).into() };
+        let range = RangeOrCell::Range {
+            from: (3, 3).into(),
+            to: (0, 0).into(),
+        };
 
         assert_eq!(
             range_to_strs(range),
             vec![
-                "D4", "C4", "B4", "A4",
-                "D3", "C3", "B3", "A3",
-                "D2", "C2", "B2", "A2",
-                "D1", "C1", "B1", "A1",
-            ]);
+                "D4", "C4", "B4", "A4", "D3", "C3", "B3", "A3", "D2", "C2", "B2", "A2", "D1", "C1",
+                "B1", "A1",
+            ]
+        );
     }
 
     #[test]
     fn iter_row_range() {
-        let range = RangeOrCell::RowRange { from: 0.into(), to: 5.into() };
+        let range = RangeOrCell::RowRange {
+            from: 0.into(),
+            to: 5.into(),
+        };
 
         assert_eq!(
             range_to_strs(range),
-            vec!["1:1", "2:2", "3:3", "4:4", "5:5", "6:6"]);
+            vec!["1:1", "2:2", "3:3", "4:4", "5:5", "6:6"]
+        );
     }
 
     #[test]
     fn iter_row_range_backwards() {
-        let range = RangeOrCell::RowRange { from: 5.into(), to: 0.into() };
+        let range = RangeOrCell::RowRange {
+            from: 5.into(),
+            to: 0.into(),
+        };
 
         assert_eq!(
             range_to_strs(range),
-            vec!["6:6", "5:5", "4:4", "3:3", "2:2", "1:1"]);
+            vec!["6:6", "5:5", "4:4", "3:3", "2:2", "1:1"]
+        );
     }
 
     #[test]
     fn iter_row_range_single() {
-        let range = RangeOrCell::RowRange { from: 0.into(), to: 0.into() };
+        let range = RangeOrCell::RowRange {
+            from: 0.into(),
+            to: 0.into(),
+        };
 
         assert_eq!(range_to_strs(range), vec!["1:1"]);
     }

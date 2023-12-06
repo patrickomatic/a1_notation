@@ -16,19 +16,16 @@ impl FromStr for Row {
             s
         };
 
-        let y = ys
-            .parse::<Index>()
-            .map_err(|e|
-                     Error::A1ParseError {
-                         bad_input: s.to_owned(), 
-                         message: format!("Error parsing number part of A1 reference: {:?}", e),
-                     })?;
+        let y = ys.parse::<Index>().map_err(|e| Error::A1ParseError {
+            bad_input: s.to_owned(),
+            message: format!("Error parsing number part of A1 reference: {:?}", e),
+        })?;
 
         if y < 1 {
             return Err(Error::A1ParseError {
                 bad_input: y.to_string(),
                 message: "A1 reference must be greater than 0".to_owned(),
-            })
+            });
         }
 
         Ok(Self { absolute, y: y - 1 })
@@ -47,8 +44,20 @@ mod tests {
 
     #[test]
     fn from_str_ok_absolute() {
-        assert_eq!(Row::from_str("$1").unwrap(), Row { y: 0, absolute: true });
-        assert_eq!(Row::from_str("$124").unwrap(), Row { y: 123, absolute: true });
+        assert_eq!(
+            Row::from_str("$1").unwrap(),
+            Row {
+                y: 0,
+                absolute: true
+            }
+        );
+        assert_eq!(
+            Row::from_str("$124").unwrap(),
+            Row {
+                y: 123,
+                absolute: true
+            }
+        );
     }
 
     #[test]

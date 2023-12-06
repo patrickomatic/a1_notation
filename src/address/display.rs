@@ -1,5 +1,5 @@
-use std::fmt;
 use super::Address;
+use std::fmt;
 
 impl fmt::Display for Address {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
