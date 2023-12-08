@@ -45,10 +45,7 @@ impl FromStr for RangeOrCell {
         } else if let Some(s) = range_strs.first() {
             parse_str(s)
         } else {
-            Err(Error::A1ParseError {
-                bad_input: a1.to_string(),
-                message: "No valid A1 references found".to_string(),
-            })
+            Err(Error::parse_error(a1, "No valid A1 references found"))
         }
     }
 }

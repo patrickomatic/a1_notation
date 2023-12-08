@@ -15,10 +15,10 @@ impl str::FromStr for Address {
         }
 
         if split_at == 0 {
-            return Err(Error::A1ParseError {
-                bad_input: a1.to_string(),
-                message: String::from("You must supply a valid A1 reference with at least one letter followed by a number."),
-            });
+            return Err(Error::parse_error(
+                a1,
+                "You must supply a valid A1 reference with at least one letter followed by a number.",
+            ));
         }
 
         Ok(Self {

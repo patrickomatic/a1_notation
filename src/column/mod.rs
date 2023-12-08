@@ -1,5 +1,5 @@
 //! # Column
-use crate::{Error, Index, ALPHA};
+use crate::Index;
 use std::cmp;
 
 mod as_ref;
