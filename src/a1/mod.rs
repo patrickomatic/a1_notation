@@ -19,6 +19,7 @@ use std::str;
 
 mod display;
 mod from_str;
+mod into_iterator;
 mod iterator;
 
 #[derive(Clone, Debug, serde::Deserialize, PartialEq, serde::Serialize)]

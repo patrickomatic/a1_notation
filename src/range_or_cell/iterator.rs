@@ -17,7 +17,7 @@ pub enum VerticalDirection {
 /// Each `RangeOrCell` requires a different strategy of iteration, so the underlying iterators
 /// reflect that by having an enum variant for each corresponding iterator.
 #[derive(Debug, Clone)]
-pub enum RangeOrCellIterator<'a> {
+pub enum RangeOrCellIterator {
     /// Just stores and emits a single `Address`
     Cell { address: Option<Address> },
 
@@ -31,8 +31,8 @@ pub enum RangeOrCellIterator<'a> {
     /// For each of the non-contiguous regions, call their iterator function until it's empty.
     /// Basically act as an aggregation of iterators.
     NonContiguous {
-        iter: Option<Box<RangeOrCellIterator<'a>>>,
-        range_or_cells: &'a [Box<RangeOrCell>],
+        iter: Option<Box<RangeOrCellIterator>>,
+        range_or_cells: Vec<RangeOrCell>,
         i: usize,
     },
 
@@ -82,7 +82,7 @@ impl RangeOrCell {
 
             RangeOrCell::NonContiguous(range_or_cells) => RangeOrCellIterator::NonContiguous {
                 iter: None,
-                range_or_cells: &range_or_cells[..],
+                range_or_cells: range_or_cells.clone(),
                 i: 0,
             },
 
@@ -103,7 +103,7 @@ impl RangeOrCell {
     }
 }
 
-impl iter::Iterator for RangeOrCellIterator<'_> {
+impl iter::Iterator for RangeOrCellIterator {
     type Item = RangeOrCell;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -260,12 +260,12 @@ mod tests {
     #[test]
     fn iter_non_contiguous() {
         let range = RangeOrCell::NonContiguous(vec![
-            Box::new(RangeOrCell::Cell((0, 0).into())),
-            Box::new(RangeOrCell::ColumnRange {
+            RangeOrCell::Cell((0, 0).into()),
+            RangeOrCell::ColumnRange {
                 from: 1.into(),
                 to: 2.into(),
-            }),
-            Box::new(RangeOrCell::Cell((2, 2).into())),
+            },
+            RangeOrCell::Cell((2, 2).into()),
         ]);
 
         assert_eq!(range_to_strs(range), vec!["A1", "B:B", "C:C", "C3"]);

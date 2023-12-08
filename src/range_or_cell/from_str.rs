@@ -38,7 +38,7 @@ impl FromStr for RangeOrCell {
         if count > 1 {
             let mut ranges = vec![];
             for range_str in range_strs {
-                ranges.push(Box::new(parse_str(range_str)?));
+                ranges.push(parse_str(range_str)?);
             }
 
             Ok(RangeOrCell::NonContiguous(ranges))
@@ -67,12 +67,12 @@ mod tests {
     fn from_str_non_contiguous() {
         assert_eq!(
             RangeOrCell::NonContiguous(vec![
-                Box::new(RangeOrCell::Cell(Address::new(0, 0))),
-                Box::new(RangeOrCell::Cell(Address::new(1, 1))),
-                Box::new(RangeOrCell::Range {
+                RangeOrCell::Cell(Address::new(0, 0)),
+                RangeOrCell::Cell(Address::new(1, 1)),
+                RangeOrCell::Range {
                     from: Address::new(0, 0),
                     to: Address::new(2, 2),
-                }),
+                },
             ]),
             RangeOrCell::from_str("A1,B2,A1:C3").unwrap()
         );

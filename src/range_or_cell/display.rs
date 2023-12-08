@@ -60,15 +60,15 @@ mod tests {
     fn display_non_contiguous() {
         assert_eq!(
             RangeOrCell::NonContiguous(vec![
-                Box::new(RangeOrCell::Cell(Address::new(0, 0))),
-                Box::new(RangeOrCell::ColumnRange {
+                RangeOrCell::Cell(Address::new(0, 0)),
+                RangeOrCell::ColumnRange {
                     from: Column::new(0),
                     to: Column::new(10)
-                }),
-                Box::new(RangeOrCell::Range {
+                },
+                RangeOrCell::Range {
                     from: Address::new(0, 0),
                     to: Address::new(10, 10)
-                }),
+                },
             ])
             .to_string(),
             "A1, A:K, A1:K11"

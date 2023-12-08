@@ -8,7 +8,8 @@ use serde::{Deserialize, Serialize};
 mod display;
 mod from_str;
 mod into;
-pub(crate) mod iterator;
+mod into_iterator;
+pub mod iterator;
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum RangeOrCell {
@@ -22,7 +23,7 @@ pub enum RangeOrCell {
     ColumnRange { from: Column, to: Column },
 
     /// A set of cells and ranges
-    NonContiguous(Vec<Box<Self>>),
+    NonContiguous(Vec<Self>),
 
     /// A range between two positions
     ///
@@ -193,7 +194,7 @@ impl RangeOrCell {
             Self::NonContiguous(range_or_cells) => Self::NonContiguous(
                 range_or_cells
                     .into_iter()
-                    .map(|r| Box::new(r.shift_down(rows)))
+                    .map(|r| r.shift_down(rows))
                     .collect(),
             ),
 
@@ -221,7 +222,7 @@ impl RangeOrCell {
             Self::NonContiguous(range_or_cells) => Self::NonContiguous(
                 range_or_cells
                     .into_iter()
-                    .map(|r| Box::new(r.shift_left(columns)))
+                    .map(|r| r.shift_left(columns))
                     .collect(),
             ),
 
@@ -247,7 +248,7 @@ impl RangeOrCell {
             Self::NonContiguous(range_or_cells) => Self::NonContiguous(
                 range_or_cells
                     .into_iter()
-                    .map(|r| Box::new(r.shift_right(columns)))
+                    .map(|r| r.shift_right(columns))
                     .collect(),
             ),
 
@@ -271,7 +272,7 @@ impl RangeOrCell {
             Self::NonContiguous(range_or_cells) => Self::NonContiguous(
                 range_or_cells
                     .into_iter()
-                    .map(|r| Box::new(r.shift_up(rows)))
+                    .map(|r| r.shift_up(rows))
                     .collect(),
             ),
 
@@ -300,12 +301,9 @@ impl RangeOrCell {
                 to: to.with_x(x),
             },
 
-            Self::NonContiguous(range_or_cells) => Self::NonContiguous(
-                range_or_cells
-                    .into_iter()
-                    .map(|r| Box::new(r.with_x(x)))
-                    .collect(),
-            ),
+            Self::NonContiguous(range_or_cells) => {
+                Self::NonContiguous(range_or_cells.into_iter().map(|r| r.with_x(x)).collect())
+            }
 
             Self::Range { from, to } => Self::Range {
                 from: from.with_x(x),
@@ -332,12 +330,9 @@ impl RangeOrCell {
                 to: Address::new(to.x, y),
             },
 
-            Self::NonContiguous(range_or_cells) => Self::NonContiguous(
-                range_or_cells
-                    .iter()
-                    .map(|r| Box::new(r.with_y(y)))
-                    .collect(),
-            ),
+            Self::NonContiguous(range_or_cells) => {
+                Self::NonContiguous(range_or_cells.iter().map(|r| r.with_y(y)).collect())
+            }
 
             Self::Range { from, to } => Self::Range {
                 from: from.with_y(y),
@@ -458,25 +453,25 @@ mod tests {
     fn shift_down_non_contiguous() {
         assert_eq!(
             RangeOrCell::NonContiguous(vec![
-                Box::new(RangeOrCell::ColumnRange {
+                RangeOrCell::ColumnRange {
                     from: 5.into(),
                     to: 10.into()
-                }),
-                Box::new(RangeOrCell::Range {
+                },
+                RangeOrCell::Range {
                     from: (5, 5).into(),
                     to: (10, 10).into()
-                }),
+                },
             ])
             .shift_down(55),
             RangeOrCell::NonContiguous(vec![
-                Box::new(RangeOrCell::ColumnRange {
+                RangeOrCell::ColumnRange {
                     from: 5.into(),
                     to: 10.into()
-                }),
-                Box::new(RangeOrCell::Range {
+                },
+                RangeOrCell::Range {
                     from: (5, 60).into(),
                     to: (10, 65).into()
-                }),
+                },
             ])
         );
     }
@@ -652,25 +647,25 @@ mod tests {
     fn with_x_non_contiguous() {
         assert_eq!(
             RangeOrCell::NonContiguous(vec![
-                Box::new(RangeOrCell::ColumnRange {
+                RangeOrCell::ColumnRange {
                     from: 5.into(),
                     to: 10.into()
-                }),
-                Box::new(RangeOrCell::Range {
+                },
+                RangeOrCell::Range {
                     from: (5, 5).into(),
                     to: (10, 10).into()
-                }),
+                },
             ])
             .with_x(55),
             RangeOrCell::NonContiguous(vec![
-                Box::new(RangeOrCell::ColumnRange {
+                RangeOrCell::ColumnRange {
                     from: 55.into(),
                     to: 55.into()
-                }),
-                Box::new(RangeOrCell::Range {
+                },
+                RangeOrCell::Range {
                     from: (55, 5).into(),
                     to: (55, 10).into()
-                }),
+                },
             ])
         );
     }
@@ -732,25 +727,25 @@ mod tests {
     fn with_y_non_contiguous() {
         assert_eq!(
             RangeOrCell::NonContiguous(vec![
-                Box::new(RangeOrCell::ColumnRange {
+                RangeOrCell::ColumnRange {
                     from: 5.into(),
                     to: 10.into()
-                }),
-                Box::new(RangeOrCell::Range {
+                },
+                RangeOrCell::Range {
                     from: (5, 5).into(),
                     to: (10, 10).into()
-                }),
+                },
             ])
             .with_y(55),
             RangeOrCell::NonContiguous(vec![
-                Box::new(RangeOrCell::Range {
+                RangeOrCell::Range {
                     from: (5, 55).into(),
                     to: (10, 55).into()
-                }),
-                Box::new(RangeOrCell::Range {
+                },
+                RangeOrCell::Range {
                     from: (5, 55).into(),
                     to: (10, 55).into()
-                }),
+                },
             ])
         );
     }
