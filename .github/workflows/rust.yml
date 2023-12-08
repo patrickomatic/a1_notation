@@ -18,8 +18,18 @@ jobs:
       - name: Install Rust
         run: rustup component add rustfmt clippy
 
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+
       - name: Run Lint and Tests
         run: |
           cargo clippy -- -D warnings
           cargo fmt --all -- --check
-          cargo test
+          cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+
+      - name: Upload Code Coverage Report
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: lcov.info
+          fail_ci_if_error: true
