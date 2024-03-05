@@ -25,7 +25,6 @@ fn parse_quoted_sheet_name(a1: &str) -> Result<(Option<String>, &str)> {
         }
     }
 
-    dbg!(consumed);
     if consumed == 0 {
         return Err(Error::parse_error(a1, "Expected a single quoted string"));
     } else if !a1[consumed..].starts_with('!') {
@@ -42,7 +41,7 @@ fn parse_quoted_sheet_name(a1: &str) -> Result<(Option<String>, &str)> {
 fn parse_sheet_name(a1: &str) -> Result<(Option<String>, &str)> {
     let trimmed_a1 = a1.trim_start();
     if trimmed_a1.starts_with('\'') {
-        dbg!(parse_quoted_sheet_name(trimmed_a1))
+        parse_quoted_sheet_name(trimmed_a1)
     } else if let Some((sheet_name, rest)) = a1.split_once('!') {
         Ok((Some(sheet_name.to_string()), rest))
     } else {
