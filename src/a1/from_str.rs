@@ -2,31 +2,33 @@ use crate::{Error, RangeOrCell, Result, A1};
 use std::str;
 
 fn parse_quoted_sheet_name(a1: &str) -> Result<(Option<String>, &str)> {
-    let mut in_quotes = false;
-    let mut escape_mode = false;
-    let mut result = "".to_string();
+    let mut unquoted = String::new();
+    let mut saw_start_quote = false;
+    let mut last_was_quote = false;
     let mut consumed = 0;
 
     for (i, c) in a1.chars().enumerate() {
-        if escape_mode {
-            result.push(c);
-            escape_mode = false;
-        } else if c == '\'' {
-            if in_quotes {
-                consumed = i + 1;
-                break;
+        if c == '\'' {
+            // two quotes in a row means it's a quoted quote
+            if last_was_quote {
+                unquoted.push(c);
+                last_was_quote = false;
+            } else if !saw_start_quote {
+                saw_start_quote = true;
             } else {
-                in_quotes = true;
+                last_was_quote = true;
             }
-        } else if c == '\\' {
-            escape_mode = true;
         } else {
-            result.push(c);
+            if last_was_quote {
+                consumed = i;
+                break;
+            }
+            unquoted.push(c);
         }
     }
 
     if consumed == 0 {
-        return Err(Error::parse_error(a1, "Expected a single quoted string"));
+        return Err(Error::parse_error(a1, "Expected a single-quoted string"));
     } else if !a1[consumed..].starts_with('!') {
         return Err(Error::parse_error(
             a1,
@@ -35,7 +37,7 @@ fn parse_quoted_sheet_name(a1: &str) -> Result<(Option<String>, &str)> {
     }
 
     // consumed + 1 so we skip the `!` char
-    Ok((Some(result), &a1[(consumed + 1)..]))
+    Ok((Some(unquoted), &a1[(consumed + 1)..]))
 }
 
 fn parse_sheet_name(a1: &str) -> Result<(Option<String>, &str)> {
@@ -108,7 +110,13 @@ mod tests {
                 sheet_name: Some("Foo\'s Bar".to_string()),
                 reference: RangeOrCell::Cell((0, 0).into()),
             },
-            A1::from_str("'Foo\\'s Bar'!A1").unwrap()
+            A1::from_str("'Foo''s Bar'!A1").unwrap()
         );
+    }
+
+    #[test]
+    fn from_str_sheet_name_invalid() {
+        // no closing quote
+        assert!(A1::from_str("'Foo''s Bar!A1").is_err());
     }
 }
