@@ -33,3 +33,38 @@ impl Into<RangeOrCell> for Address {
         RangeOrCell::Cell(self)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn address_into_a1() {
+        let a1: A1 = Address::new(1, 2).into();
+        assert_eq!(
+            a1,
+            A1 {
+                sheet_name: None,
+                reference: RangeOrCell::Cell(Address::new(1, 2)),
+            }
+        );
+    }
+
+    #[test]
+    fn address_into_column() {
+        let c: Column = Address::new(1, 2).into();
+        assert_eq!(c, Column::new(1));
+    }
+
+    #[test]
+    fn address_into_row() {
+        let r: Row = Address::new(1, 2).into();
+        assert_eq!(r, Row::new(2));
+    }
+
+    #[test]
+    fn address_into_range_or_cell() {
+        let r: RangeOrCell = Address::new(1, 2).into();
+        assert_eq!(r, RangeOrCell::Cell(Address::new(1, 2)));
+    }
+}

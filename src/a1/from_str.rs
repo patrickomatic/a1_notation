@@ -118,5 +118,8 @@ mod tests {
     fn from_str_sheet_name_invalid() {
         // no closing quote
         assert!(A1::from_str("'Foo''s Bar!A1").is_err());
+
+        // no ! after the sheet name
+        assert!(A1::from_str("'Foo Bar'").is_err());
     }
 }

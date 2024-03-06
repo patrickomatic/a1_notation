@@ -266,3 +266,94 @@ pub fn row_range<R: Into<Row>>(ya: R, yb: R) -> A1 {
         reference: RangeOrCell::row_range(ya, yb),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn cell() {
+        let a1 = crate::cell(2, 3);
+
+        assert_eq!(a1.sheet_name, None);
+        assert_eq!(a1.reference, RangeOrCell::Cell(Address::new(2, 3)));
+    }
+
+    #[test]
+    fn new() {
+        let a1 = crate::new("Foo!A1").unwrap();
+
+        assert_eq!(a1.sheet_name, Some("Foo".to_string()));
+        assert_eq!(a1.reference, RangeOrCell::Cell(Address::new(0, 0)));
+    }
+
+    #[test]
+    fn range() {
+        let a1 = crate::range((0, 0), (22, 33));
+
+        assert_eq!(a1.sheet_name, None);
+        assert_eq!(
+            a1.reference,
+            RangeOrCell::Range {
+                from: Address::new(0, 0),
+                to: Address::new(22, 33),
+            }
+        );
+    }
+
+    #[test]
+    fn column() {
+        let a1 = crate::column(22);
+
+        assert_eq!(a1.sheet_name, None);
+        assert_eq!(
+            a1.reference,
+            RangeOrCell::ColumnRange {
+                from: Column::new(22),
+                to: Column::new(22),
+            }
+        );
+    }
+
+    #[test]
+    fn column_range() {
+        let a1 = crate::column_range(1, 420);
+
+        assert_eq!(a1.sheet_name, None);
+        assert_eq!(
+            a1.reference,
+            RangeOrCell::ColumnRange {
+                from: Column::new(1),
+                to: Column::new(420),
+            }
+        );
+    }
+
+    #[test]
+    fn row() {
+        let a1 = crate::row(11);
+
+        assert_eq!(a1.sheet_name, None);
+        assert_eq!(
+            a1.reference,
+            RangeOrCell::RowRange {
+                from: Row::new(11),
+                to: Row::new(11),
+            }
+        );
+    }
+
+    #[test]
+    fn row_range() {
+        let a1 = crate::row_range(0, 42);
+
+        assert_eq!(a1.sheet_name, None);
+        assert_eq!(
+            a1.reference,
+            RangeOrCell::RowRange {
+                from: Row::new(0),
+                to: Row::new(42),
+            }
+        );
+    }
+}
