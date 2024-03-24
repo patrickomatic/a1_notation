@@ -14,6 +14,17 @@ pub mod iterator;
     feature = "rkyv",
     derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
 )]
+#[cfg_attr(
+    feature = "rkyv",
+    archive(bound(serialize = "__S: rkyv::ser::ScratchSpace + rkyv::ser::Serializer"))
+)]
+#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(
+    feature = "rkyv",
+    archive_attr(check_bytes(
+        bound = "__C: rkyv::validation::ArchiveContext, <__C as rkyv::Fallible>::Error: std::error::Error"
+    ))
+)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum RangeOrCell {

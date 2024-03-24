@@ -13,7 +13,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 serde = { version = "^1", features = ["derive"], optional = true }
-rkyv = { version = "^0.7", optional = true }
+rkyv = { version = "0.7.43", features = ["std", "bytecheck", "validation"], optional = true }
 
 [features]
 rkyv = ["dep:rkyv"]

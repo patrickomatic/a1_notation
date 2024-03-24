@@ -3,7 +3,10 @@
 ## Features
 
 * Update dependencies
-* Enable `rkyv::Archive`
+
+## Bugfixes
+
+* Fix `rkyv` support
 
 # v0.6.0
 
