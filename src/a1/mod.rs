@@ -22,7 +22,9 @@ mod from_str;
 mod into_iterator;
 mod iterator;
 
-#[derive(Clone, Debug, serde::Deserialize, PartialEq, serde::Serialize)]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Deserialize, rkyv::Serialize))]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[derive(Clone, Debug, PartialEq)]
 pub struct A1 {
     pub sheet_name: Option<String>,
     pub reference: RangeOrCell,

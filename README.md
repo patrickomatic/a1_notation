@@ -9,6 +9,12 @@ A library for parsing to and from A1 spreadsheet notation. A1 notation uses lett
 columns and a one-based number for the row.  So for example at position `(0, 0)` of a spreadsheet
 (the top left corner) is "A1".  `(1, 1)` is "B2", `(1, 0)` is "B1", etc.  
 
+## Features
+
+For [serde](https://serde.rs) or [rkyv](https://docs.rs/rkyv/latest/rkyv/) support, you can enable
+it with the respective features (either specify `features = ["serde"]` or `features = ["rkyv"]` in
+your `Cargo.toml`).
+
 ## Instantiating `A1`s
 
 The most common need is to parse a string:

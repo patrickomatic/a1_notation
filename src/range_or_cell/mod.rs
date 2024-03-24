@@ -3,7 +3,6 @@
 //! Parsing and displaying a cell value (which can pretty much always be either a cell or a range).
 //!
 use crate::{Address, Column, Index, Row, A1};
-use serde::{Deserialize, Serialize};
 
 mod display;
 mod from_str;
@@ -11,7 +10,9 @@ mod into;
 mod into_iterator;
 pub mod iterator;
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Deserialize, rkyv::Serialize))]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[derive(Clone, Debug, PartialEq)]
 pub enum RangeOrCell {
     /// Just a single cell
     Cell(Address),

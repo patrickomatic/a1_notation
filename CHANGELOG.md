@@ -1,3 +1,13 @@
+# v0.6.0
+
+## Features
+
+* Support for `rkyv` (via the `"rkyv"` feature).
+
+## **Breaking Changes**
+
+* Support for `serde` is now behind a feature (`"serde"`)
+
 # v0.5.0
 
 ## **Breaking Changes**

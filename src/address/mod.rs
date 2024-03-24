@@ -4,7 +4,6 @@
 //! `AsRef` or `Into` implementations.
 //!
 use crate::{Column, Index, Row};
-use serde::{Deserialize, Serialize};
 
 mod as_ref;
 mod display;
@@ -12,7 +11,9 @@ mod from;
 mod from_str;
 mod into;
 
-#[derive(Copy, Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Deserialize, rkyv::Serialize))]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Address {
     pub column: Column,
     pub row: Row,
