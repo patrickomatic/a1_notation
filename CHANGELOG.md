@@ -1,4 +1,8 @@
-# v0.6.1
+# v0.6.2
+
+## Features
+
+* Upgrade to `rkyv` `v0.7.44`
 
 ## Features
 

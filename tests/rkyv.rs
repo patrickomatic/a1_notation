@@ -1,3 +1,4 @@
+#[cfg(feature = "rkyv")]
 use a1_notation::new;
 
 #[test]
