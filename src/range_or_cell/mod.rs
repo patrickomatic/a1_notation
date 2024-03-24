@@ -27,7 +27,9 @@ pub enum RangeOrCell {
     ColumnRange { from: Column, to: Column },
 
     /// A set of cells and ranges
-    NonContiguous(Vec<Self>),
+    ///
+    /// Note: `rkyv` requires that we add the `omit_bounds` for anything self-referential.
+    NonContiguous(#[cfg_attr(feature = "rkyv", omit_bounds, archive_attr(omit_bounds))] Vec<Self>),
 
     /// A range between two positions
     ///
