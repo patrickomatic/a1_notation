@@ -11,7 +11,10 @@ mod from;
 mod from_str;
 mod into;
 
-#[cfg_attr(feature = "rkyv", derive(rkyv::Deserialize, rkyv::Serialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Address {

@@ -22,7 +22,10 @@ mod from_str;
 mod into_iterator;
 mod iterator;
 
-#[cfg_attr(feature = "rkyv", derive(rkyv::Deserialize, rkyv::Serialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct A1 {

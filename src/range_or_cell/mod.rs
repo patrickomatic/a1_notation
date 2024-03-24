@@ -10,7 +10,10 @@ mod into;
 mod into_iterator;
 pub mod iterator;
 
-#[cfg_attr(feature = "rkyv", derive(rkyv::Deserialize, rkyv::Serialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum RangeOrCell {

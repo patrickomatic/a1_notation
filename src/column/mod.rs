@@ -11,7 +11,10 @@ mod ord;
 mod partial_eq;
 mod partial_ord;
 
-#[cfg_attr(feature = "rkyv", derive(rkyv::Deserialize, rkyv::Serialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[derive(Copy, Clone, Debug, Eq)]
 pub struct Column {
