@@ -1,3 +1,7 @@
+*This project has been renamed to `a1` - Please switch to that crate which is available 
+on [crates.io](https://https://crates.io/crates/a1) and
+[github](https://github.com/patrickomatic/a1)*
+
 [![crates.io](https://img.shields.io/crates/v/a1_notation.svg)](https://crates.io/crates/a1_notation)
 [![github workflow](https://github.com/patrickomatic/a1_notation/actions/workflows/rust.yml/badge.svg)](https://github.com/patrickomatic/a1_notation/actions)
 [![dependency status](https://deps.rs/repo/github/patrickomatic/a1_notation/status.svg)](https://deps.rs/repo/github/patrickomatic/a1_notation)
